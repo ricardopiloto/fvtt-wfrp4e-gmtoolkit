@@ -24,6 +24,8 @@
     "GMTOOLKIT.Settings.Advantage.Automate.CombatJoin.hint": "Usuń Przewagę z tokenów po dodaniu ich do wskaźnika walki (jeśli nie korzystasz z Przewagi Grupowej), a nie po utworzeniu pustej potyczki lub rozpoczęciu walki.",
     "GMTOOLKIT.Settings.Advantage.Automate.CombatLeave.name": "Opuszczenie Walki",
     "GMTOOLKIT.Settings.Advantage.Automate.CombatLeave.hint": "Usuń Przewagę z tokenów, gdy zostaną usunięte z walki, a nie po zakończeniu walki.",
+    "GMTOOLKIT.Settings.Advantage.Automate.GroupNumericalSuperiority.name": "Group Advantage: numerical superiority",
+    "GMTOOLKIT.Settings.Advantage.Automate.GroupNumericalSuperiority.hint": "When WFRP4e Group Advantage is enabled, at the end of each combat round (when the round number advances) compare combatants by token disposition: Hostile versus Friendly, ignoring Neutral. If one side has more tokens, increase that side's group pool by 1 and decrease the other by 1 (respecting minimum 0 and the system's maximum Advantage).",
 
     "GMTOOLKIT.Settings.TokenHudExtensions.Enabled.name": "Włącz rozszerzone widoki tokenów",
     "GMTOOLKIT.Settings.TokenHudExtensions.Enabled.hint": "Udostępniaj podpowiedzi i interakcje dotyczące kluczowych atrybutów i umiejętności z poziomu kontrolowanych tokenów. Domyślnie włączone.",

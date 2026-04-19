@@ -235,7 +235,12 @@ export default class Advantage {
     // Exit without prompt if no combatant has Advantage to lose
     if (checkGained === "" && checkNotGained === "") {
       const uiNotice = game.i18n.format("GMTOOLKIT.Message.Advantage.NoCombatantsWithAdvantage", { combatRound: round })
-      if (game.user.isGM) {ui.notifications.notify(uiNotice, "info", { permanent: game.settings.get(GMToolkit.MODULE_ID, "persistAdvantageNotifications") }, { console: true } )}
+      if (game.user.isGM) {
+        ui.notifications.notify(uiNotice, "info", {
+          permanent: game.settings.get(GMToolkit.MODULE_ID, "persistAdvantageNotifications"),
+          console: true
+        })
+      }
       return
     }
 
@@ -292,16 +297,61 @@ export default class Advantage {
 
   }
 
+  /**
+   * When Group Advantage is active, shift one group pool Advantage toward the side with more
+   * combatants by token disposition (Hostile vs Friendly; Neutral excluded). Uses WFRP4e
+   * `enemies` / `players` pools, clamped to 0 and the world's configured Advantage maximum.
+   * @param {Combat} combat   Active encounter (caller ensures combatants exist).
+   */
+  static async applyGroupNumericalSuperiority (combat) {
+    const updateGroupAdvantage = game.wfrp4e?.utility?.updateGroupAdvantage
+    if (typeof updateGroupAdvantage !== "function") return
+
+    let hostile = 0
+    let friendly = 0
+    for (const c of combat.combatants) {
+      const token = c.token
+      if (!token) continue
+      const d = token.disposition
+      if (d === CONST.TOKEN_DISPOSITIONS.HOSTILE) hostile++
+      else if (d === CONST.TOKEN_DISPOSITIONS.FRIENDLY) friendly++
+    }
+
+    GMToolkit.log(false, `applyGroupNumericalSuperiority: hostile=${hostile}, friendly=${friendly}`)
+
+    if (hostile === friendly) return
+    if (hostile + friendly === 0) return
+
+    const current = foundry.utils.duplicate(game.settings.get("wfrp4e", "groupAdvantageValues"))
+    let players = Number(current.players) || 0
+    let enemies = Number(current.enemies) || 0
+    const rawMax = game.settings.get("wfrp4e", "advantagemax")
+    const maxAdv = Number.isNumeric(rawMax) ? Number(rawMax) : Infinity
+
+    if (hostile > friendly) {
+      enemies = Math.min(enemies + 1, maxAdv)
+      players = Math.max(players - 1, 0)
+    } else {
+      players = Math.min(players + 1, maxAdv)
+      enemies = Math.max(enemies - 1, 0)
+    }
+
+    if (players === Number(current.players) && enemies === Number(current.enemies)) return
+
+    await game.wfrp4e.utility.updateGroupAdvantage({ players, enemies })
+    GMToolkit.log(true, `applyGroupNumericalSuperiority: players=${players}, enemies=${enemies}`)
+  }
+
 } // End Class
 
 
 Hooks.on("wfrp4e:applyDamage", async function (scriptArgs) {
   GMToolkit.log(false, scriptArgs)
-  if (!scriptArgs.opposedTest.defenderTest.context.unopposed) return // Only apply when Outmanouevring (ie, damage from an unopposed test).
+  if (!scriptArgs?.opposedTest?.defenderTest?.context?.unopposed) return // Only apply when Outmanouevring (ie, damage from an unopposed test).
   if (scriptArgs.opposedTest.attackerTest.preData.dualWielding) return // Exit if this is the first strike when Dual Wielding
   if (!game.settings.get(GMToolkit.MODULE_ID, "automateDamageAdvantage")) return
   if (!inActiveCombat(scriptArgs.opposedTest.attackerTest.actor)
-    | !inActiveCombat(scriptArgs.opposedTest.defenderTest.actor)) return // Exit if either actor is not in the active combat
+    || !inActiveCombat(scriptArgs.opposedTest.defenderTest.actor)) return // Exit if either actor is not in the active combat
 
   const uiNotice = `${game.i18n.format("GMTOOLKIT.Advantage.Automation.Outmanoeuvre", { actorName: scriptArgs.actor.name, attackerName: scriptArgs.attacker.name, totalWoundLoss: scriptArgs.totalWoundLoss } )}`
   const message = uiNotice
@@ -414,7 +464,7 @@ Hooks.on("wfrp4e:opposedTestResult", async function (opposedTest, attackerTest, 
 
   const attacker = attackerTest.actor
   const defender = defenderTest.actor
-  if (!inActiveCombat(attacker) | !inActiveCombat(defender)) return // Exit if either actor is not in the active combat
+  if (!inActiveCombat(attacker) || !inActiveCombat(defender)) return // Exit if either actor is not in the active combat
 
   const winner = opposedTest.result.winner === "attacker" ? attacker : defender
   const loser = opposedTest.result.winner === "attacker" ? defender : attacker
@@ -522,33 +572,44 @@ Hooks.on("deleteCombatant", function (combatant) {
 })
 
 
-Hooks.on("preUpdateCombat", async function (combat, change) {
-  if (!game.user.isUniqueGM || !combat.combatants.size || !change.round) return
-  if ( !(change.round > combat.round) ) return // Exit if not advancing combat round, including going backwards through combat
-  if (!combat.started) return // Exit when beginning combat; prevents loseMomentum firing prematurely
+/**
+ * Foundry v14+: use documented combat hooks (see hookEvents.combatRound / combatTurnChange).
+ * `combatRound` runs on the initiating client before the Combat document is updated.
+ */
+Hooks.on("combatRound", async function (combat, updateData, updateOptions) {
+  if (!game.user.isUniqueGM || !combat.combatants.size) return
+  if (!Number.isFinite(updateData?.round)) return
+  if (!(updateData.round > combat.round)) return
+  if (!combat.started) return
 
-  // Lose Momentum: proceed only if enabled, and Group Advantage is not being used
   if (game.settings.get(GMToolkit.MODULE_ID, "promptMomentumLoss")
     && !game.settings.get("wfrp4e", "useGroupAdvantage")) {
-    GMToolkit.log(false, "preUpdateCombat: compare Advantage at start and end of round")
+    GMToolkit.log(false, "combatRound: compare Advantage at start and end of round")
     Advantage.loseMomentum(combat)
   }
 
+  if (game.settings.get("wfrp4e", "useGroupAdvantage")
+    && game.settings.get(GMToolkit.MODULE_ID, "automateGroupAdvantageNumericalSuperiority")
+    && combat.round >= 1) {
+    GMToolkit.log(false, "combatRound: Group Advantage numerical superiority")
+    await Advantage.applyGroupNumericalSuperiority(combat)
+  }
 })
 
 
-Hooks.on("updateCombat", async function (combat, change) {
-  if (!combat.round || !game.user.isUniqueGM || !combat.combatants.size) return
-  if (!change.round) return // Exit if this isn't the start of a round
+/**
+ * After the Combat database update when round or turn advances; used for post-round bookkeeping.
+ */
+Hooks.on("combatTurnChange", async function (combat, prior, current) {
+  if (!game.user.isUniqueGM || !combat.combatants.size) return
+  if (!combat.round) return
+  if (prior.round === current.round) return
 
-  // Clear Advantage flags when the combat round changes
-  // Still required when Group Advantage is used because of Opposed Test flags
-  GMToolkit.log(true, "updateCombat: unsetting Advantage flags")
+  GMToolkit.log(true, "combatTurnChange (round): unsetting Advantage flags")
   const advFlagged = combat.combatants.filter(c => c.getFlag("wfrp4e-gm-toolkit", "advantage"))
   if (advFlagged.length) await Advantage.unsetFlags(advFlagged)
 
-  GMToolkit.log(false, "updateCombat: Setting startOfRound flag")
-  // Skip individual start of round Advantage tracking if Group Advantage is being used
+  GMToolkit.log(false, "combatTurnChange: Setting startOfRound flag")
   if (combat.turns && combat.isActive && !game.settings.get("wfrp4e", "useGroupAdvantage")) {
     combat.combatants.forEach(async c => {
       await c.setFlag("wfrp4e-gm-toolkit", "sorAdvantage", c.token.actor.system.status?.advantage?.value ?? 0)

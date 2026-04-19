@@ -24,6 +24,8 @@
     "GMTOOLKIT.Settings.Advantage.Automate.CombatJoin.hint" : "Clear Advantage from tokens when they are added to the combat tracker (if not using Group Advantage), not when a blank encounter is created or combat is begun.",
     "GMTOOLKIT.Settings.Advantage.Automate.CombatLeave.name" : "Leaving combat",
     "GMTOOLKIT.Settings.Advantage.Automate.CombatLeave.hint" : "Clear Advantage from tokens when they are removed from the combat tracker, rather than when combat is ended.",
+    "GMTOOLKIT.Settings.Advantage.Automate.GroupNumericalSuperiority.name" : "Group Advantage: numerical superiority",
+    "GMTOOLKIT.Settings.Advantage.Automate.GroupNumericalSuperiority.hint" : "When WFRP4e Group Advantage is enabled, at the end of each combat round (when the round number advances) compare combatants by token disposition: Hostile versus Friendly, ignoring Neutral. If one side has more tokens, increase that side's group pool by 1 and decrease the other by 1 (respecting minimum 0 and the system's maximum Advantage).",
 
     "GMTOOLKIT.Settings.TokenHudExtensions.Enabled.name" : "Activer les Extensions de l'ATH de Pion",
     "GMTOOLKIT.Settings.TokenHudExtensions.Enabled.hint" : "Crée des info-bulles et des interactions pour les attributs et les Compétences clés disponibles grâce à l'ATH des Pions contrôlés. Activé par défaut.",

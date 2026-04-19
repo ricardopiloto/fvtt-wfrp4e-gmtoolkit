@@ -178,9 +178,13 @@ export async function runActorTest (actor, testSkill, testOptions) {
           })
       }
 
+      const characteristicContext = foundry.utils.mergeObject(
+        foundry.utils.mergeObject(foundry.utils.duplicate(setupData), dialogFallbackTitle),
+        difficultySetting
+      )
       const characteristicTest = await actor.setupCharacteristic(
         actorSkill.characteristic.value,
-        foundry.utils.mergeObject(setupData, dialogFallbackTitle, difficultySetting)
+        characteristicContext
       )
       return characteristicTest.roll()
     }
@@ -209,36 +213,35 @@ export async function updateGroupTestResults (actorTestResult) {
 
 // Intercept test result
 Hooks.on("wfrp4e:rollTest", async function (testData, chatData) {
-  if (testData.options.groupTest) {
-    const groupTestResult = []
-    await groupTestResult.push(...game.settings.get("wfrp4e-gm-toolkit", "aggregateResultGroupTest"))
+  if (!testData.options?.groupTest) return
 
-    const testResult = {
-      actor: testData.token || testData.actor,
-      skill: testData?.skill,
-      // characteristic: ( testData?.characteristic ? testData?.characteristicKey ),
-      outcome: testData.outcome,
-      sl: testData.result.SL,
-      description: testData.result.description,
-      roll: testData.result.roll,
-      target: testData.target
-    }
+  const prior = foundry.utils.duplicate(
+    await game.settings.get("wfrp4e-gm-toolkit", "aggregateResultGroupTest")
+  ) || []
+  const groupTestResult = [...prior]
 
-    if (testData?.characteristic) (
-      testResult.characteristic = testData.characteristicKey
-    )
-
-    await groupTestResult.push(testResult)
-    // GMToolkit.log(true, "groupTestResult: this test result", testResult)
-    // GMToolkit.log(true, "groupTestResult: groupTestResult", groupTestResult)
-
-    if (game.user.isUniqueGM) {
-      return await updateGroupTestResults(groupTestResult)
-    } else {
-      return game.socket.emit(`module.${GMToolkit.MODULE_ID}`,
-        { type: "aggregateGroupTestResults", payload: groupTestResult })
-    }
-
+  const testResult = {
+    actor: testData.token || testData.actor,
+    skill: testData?.skill,
+    outcome: testData.outcome,
+    sl: testData.result.SL,
+    description: testData.result.description,
+    roll: testData.result.roll,
+    target: testData.target
   }
+
+  if (testData.characteristicKey) {
+    testResult.characteristic = testData.characteristicKey
+  } else if (testData.constructor?.name === "CharacteristicTest" && testData.preData?.item) {
+    testResult.characteristic = testData.preData.item
+  }
+
+  groupTestResult.push(testResult)
+
+  if (game.user.isUniqueGM) {
+    return await updateGroupTestResults(groupTestResult)
+  }
+  return game.socket.emit(`module.${GMToolkit.MODULE_ID}`,
+    { type: "aggregateGroupTestResults", payload: groupTestResult })
 })
 

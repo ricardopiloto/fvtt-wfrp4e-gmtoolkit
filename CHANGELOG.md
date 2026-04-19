@@ -5,8 +5,24 @@ All notable changes to this project will be documented in this file.  The format
 
 ## Unreleased
 See [Issue Backlog](../../issues) and [Roadmap](../../milestones).
+
+## [Version 10.0.1](https://github.com/Jagusti/fvtt-wfrp4e-gmtoolkit/releases/tag/v10.0.1) (2026-04-19)
+- *Changed* **WFRP4e** compatibility to track current system releases ([system documentation](https://moo-man.github.io/WFRP4e-FoundryVTT/)): `module.json` now requires **WFRP4e 9.5.0+** (`verified` **9.5.4**, matching upstream `system.json`).
+- *Added* **`relationships.requires`** for **Warhammer Library** (`warhammer-lib`), mirroring the WFRP4e system dependency ([Warhammer Library module](https://raw.githubusercontent.com/moo-man/WarhammerLibrary-FVTT/3.0.2/module.json)) so Foundry can resolve install order correctly.
+- *Fixed* **`wfrp4e:applyDamage`** automation: guard when `opposedTest` is missing and use logical **OR** (`||`) for `inActiveCombat` checks (previously `|`).
+- *Fixed* **Group Test** `wfrp4e:rollTest` handler: load prior aggregate results with `duplicate`/`spread` instead of invalid `await` on `Array#push`; detect characteristic fallback via **`characteristicKey`** as exposed by `TestWFRP4e` ([rolls API](https://moo-man.github.io/WFRP4e-FoundryVTT/)).
+- *Fixed* **Group Test** fallback characteristic context: merge `setupData`, dialog title, and difficulty options with two **`mergeObject`** calls (third argument is not a data payload in Foundry).
+
+## [Version 10.0.0](https://github.com/Jagusti/fvtt-wfrp4e-gmtoolkit/releases/tag/v10.0.0) (2026-04-19)
+This release targets **Foundry VTT v14** only (v13 and earlier are no longer supported for this line).
+
+- *Changed* **Foundry v14 compatibility** in `module.json` (`minimum`: 14, `verified`: 14.347) and raised the documented WFRP4e `verified` system version to 9.4.1. Use a WFRP4e build that officially supports Foundry 14 when you upgrade the world.
+- *Changed* **Combat hooks** to follow the v14 [hook events](https://foundryvtt.com/api/v14/modules/hookEvents.html) API: `preUpdateCombat` / `updateCombat` logic for advantage is now handled with **`combatRound`** (pre-update, same timing as before for round advances) and **`combatTurnChange`** (post-update when the round changes), including Lose Momentum prompts and Group Advantage numerical superiority.
+- *Changed* **Chat message context menu** integration to the v14 shape of **`getChatMessageContextOptions`**: entries use `label`, `visible`, and `onClick(event, target)` with `ContextMenuEntry`, and the flavour editor escapes existing text for safe HTML attributes.
+- *Changed* **`preUpdateToken`** and **`renderTokenHUD`** usage for v14: token updates use the `TokenDocument` argument; the token HUD accepts either jQuery or `HTMLElement` for the rendered root and scopes the status-effects background style to that HUD.
+- *Added* **Group Advantage: numerical superiority** setting (`automateGroupAdvantageNumericalSuperiority`, default on): when WFRP4e **Group Advantage** is enabled, at the end of each combat round the module compares **Friendly** vs **Hostile** token dispositions in the encounter (ignoring **Neutral**), then shifts one point between the **Players** and **Enemies** group pools (clamped to 0 and the world’s advantage maximum) toward the side with more tokens.
 - *Changed* Check Conditions macro [#344](https://github.com/Jagusti/fvtt-wfrp4e-gmtoolkit/pull/344) to
-  - not prompt for Stunned condition checks. This is [now handled](https://redirect.github.com/moo-man/WFRP4e-FoundryVTT/pull/2507) by the system. 
+  - not prompt for Stunned condition checks. This is [now handled](https://redirect.github.com/moo-man/WFRP4e-FoundryVTT/pull/2507) by the system.
   - report success and failure context in condition test results.
 
 ## [Version 9.1.1](https://github.com/Jagusti/fvtt-wfrp4e-gmtoolkit/releases/tag/v9.1.1)  (2025-06-15)

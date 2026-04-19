@@ -86,6 +86,17 @@ export class GMToolkitSettings {
       onChange: foundry.utils.debouncedReload,
       feature: "advantage"
     })
+    // Automate group advantage numerical superiority
+    game.settings.register(GMToolkit.MODULE_ID, "automateGroupAdvantageNumericalSuperiority", {
+      name: "GMTOOLKIT.Settings.Advantage.Automate.GroupNumericalSuperiority.name",
+      hint: "GMTOOLKIT.Settings.Advantage.Automate.GroupNumericalSuperiority.hint",
+      scope: "world",
+      config: false,
+      default: true,
+      type: Boolean,
+      onChange: foundry.utils.debouncedReload,
+      feature: "advantage"
+    })
     game.settings.register(GMToolkit.MODULE_ID, "persistAdvantageNotifications", {
       name: "GMTOOLKIT.Settings.Advantage.PersistNotices.name",
       hint: "GMTOOLKIT.Settings.Advantage.PersistNotices.hint",

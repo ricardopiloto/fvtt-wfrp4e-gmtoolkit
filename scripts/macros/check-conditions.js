@@ -34,7 +34,7 @@ async function checkConditions () {
   function isEndOfRound () {
     const combat = game.combat
     if (!combat) return false
-    if (combat.round !== 0 && combat.turns && combat.active) {
+    if (combat.round !== 0 && combat.turns && combat.isActive) {
       return (
         combat.current.turn > -1
         && combat.current.turn === combat.turns.length - 1
