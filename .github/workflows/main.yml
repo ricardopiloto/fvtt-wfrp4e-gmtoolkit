@@ -21,6 +21,13 @@ jobs:
           node-version: '18'
       - run: npm i -g @foundryvtt/foundryvtt-cli
 
+      - name: Guard compendium sources (no legacy module path segment)
+        run: |
+          if grep -R --line-number --include='*.json' 'modules/wfrp4e-gm-toolkit/' src/packs; then
+            echo "Legacy path segment modules/wfrp4e-gm-toolkit/ found under src/packs — use modules/wfrp4e-gm-toolkit-jiban/"
+            exit 1
+          fi
+
       # Seutup python and compile compendium packs
       - name: Setup python
         uses: actions/setup-python@v3

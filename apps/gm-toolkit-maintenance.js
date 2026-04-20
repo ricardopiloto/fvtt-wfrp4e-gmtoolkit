@@ -92,6 +92,11 @@ function getCompendiumToolkitVersion (d) {
   return undefined
 }
 
+/** Image URL for Maintenance list rows (read `thumbnail`/`img`; do not assign onto Document instances). */
+function maintenanceThumbnail (doc) {
+  return doc.thumbnail ?? doc.img ?? "icons/svg/dice-target.svg"
+}
+
 async function buildLocalizedContent (documentType) {
   GMToolkit.log(false, "Starting buildLocalizedContent")
 
@@ -132,7 +137,7 @@ async function buildLocalizedContent (documentType) {
         id: d.id,
         name: d.name,
         img: d.img,
-        thumbnail: d.thumbnail ?? d.img ?? "icons/svg/dice-target.svg",
+        thumbnail: maintenanceThumbnail(d),
         translationKey: strip(d.name, translationKeyPrefix, "."),
         localVersion: emptyLabel,
         compendiumVersion: getCompendiumToolkitVersion(d)
@@ -141,18 +146,23 @@ async function buildLocalizedContent (documentType) {
     return rows
   }
 
-  // Build localized array from world documents
-  for (const content of toolkitContent) {
-    content.translationKey = strip(content.name, translationKeyPrefix, ".")
-    content.localVersion = GMToolkit.getFlagCompat(content, "version")
-    content.compendiumVersion = documents
-      .filter(d => d.name === game.i18n.localize(content.translationKey))
-      .map(d => getCompendiumToolkitVersion(d))[0]
-    content.thumbnail = content.thumbnail ?? content.img ?? "icons/svg/dice-target.svg"
-    contentArray.push(content)
+  // Build localized array from world documents (plain rows — Macro/RollTable `thumbnail` is getter-only)
+  for (const doc of toolkitContent) {
+    const translationKey = strip(doc.name, translationKeyPrefix, ".")
+    contentArray.push({
+      id: doc.id,
+      name: doc.name,
+      img: doc.img,
+      thumbnail: maintenanceThumbnail(doc),
+      translationKey,
+      localVersion: GMToolkit.getFlagCompat(doc, "version"),
+      compendiumVersion: documents
+        .filter(d => d.name === game.i18n.localize(translationKey))
+        .map(d => getCompendiumToolkitVersion(d))[0]
+    })
   }
 
-  GMToolkit.log(false, "contentArray : ", contentArray)
+  GMToolkit.log(false, "buildLocalizedContent: local rows =", contentArray.length, folderType)
   GMToolkit.log(false, "Ending buildLocalizedContent")
 
   return contentArray

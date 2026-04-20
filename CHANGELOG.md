@@ -6,6 +6,11 @@ All notable changes to this project will be documented in this file.  The format
 ## Unreleased
 See [Issue Backlog](../../issues) and [Roadmap](../../milestones).
 
+- *Fixed* **Update GM Toolkit Content** (Maintenance): the dialog no longer assigns **`thumbnail`** onto world **`Macro` / `RollTable`** documents (read-only in current Foundry); list rows are **plain objects** with computed **`thumbnail`** for the template (`apps/gm-toolkit-maintenance.js`).
+
+- *Fixed* **Compendium sources (`src/packs`)**: embedded macro `command` strings and table documents no longer reference the upstream module id **`wfrp4e-gm-toolkit`** or **`modules/wfrp4e-gm-toolkit/...`** paths; packaged QuickMenu templates, settings keys, and document flags use this fork’s **`wfrp4e-gm-toolkit-jiban`** scope so release zips match runtime.
+
+## [Version 10.0.4](https://github.com/ricardopiloto/fvtt-wfrp4e-gmtoolkit/releases/tag/v10.0.4) (2026-04-20)
 - *Fixed* **Configure Group Test Options** (module settings menu) appearing **empty** when **Babele** defers initialization: `registerGroupTestSettings` is now **awaited** from `GMToolkitSettings.register`, guarded **idempotent**, invoked from **`babele.ready`** with proper `await`, and backed by a **20s fallback** that compiles skills and registers if registration still did not run (e.g. missing `babele.ready` on some hosts). **Forced** `GMToolkit.log(true, …)` diagnostics summarize Babele state, skill counts, register vs defer, and registered `grouptest` setting count (troubleshooting Babele 2.7.x + production servers).
 
 - *Fixed* **Update GM Toolkit Content** (Maintenance): **local vs compendium** versions now use **`GMToolkit.getFlagCompat`** for world entries and **`wfrp4e-gm-toolkit-jiban` / legacy** flag scopes for compendium entries (replacing hardcoded `wfrp4e-gm-toolkit` only). When there are **no** macros/tables in GM Toolkit folders, the dialog lists **compendium-only** rows with **`GMTOOLKIT.Dialog.Maintenance.Empty` → compendium version**; missing compendium pack returns an empty list safely.
