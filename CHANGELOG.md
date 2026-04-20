@@ -6,6 +6,40 @@ All notable changes to this project will be documented in this file.  The format
 ## Unreleased
 See [Issue Backlog](../../issues) and [Roadmap](../../milestones).
 
+## [Version 10.0.3](https://github.com/ricardopiloto/fvtt-wfrp4e-gmtoolkit/releases/tag/v10.0.3) (2026-04-20)
+- *Fixed* **Advantage Handling settings:** options no longer appear duplicated in “Configure Advantage Handling”.
+- *Changed* **Losing Advantage** (Group Advantage automation): removed forced debug logs from `applyGroupNumericalSuperiority` and made `combatRound` skip diagnostics non-forced by default.
+- *Fixed* **Losing Advantage — Drilled rules:** Drilled weighting now applies only for combatants whose resolved actor is not **Dead** or **Unconscious**, only when the combatant's side has **≥ 2** tally-eligible heads, and never when there is **exactly 1** Friendly head in the tally (so **1vN** never evaluates Drilled). If weighted totals tie and the combined tally is non-zero, the group pools do not change (no tie-break “steal”).
+- *Changed* **Losing Advantage hint text:** updated the hint string in the Advantage Handling settings (EN + DE/FR/JA/PL).
+- *Added* **Brazilian Portuguese (pt-BR)** localization.
+
+## [Version 10.0.2](https://github.com/Jagusti/fvtt-wfrp4e-gmtoolkit/releases/tag/v10.0.2) (2026-04-19)
+- *Changed* **Group Advantage: numerical superiority** (`applyGroupNumericalSuperiority`): **Neutral** tokens now count toward the **enemies**-side tally together with **Hostile**; **Friendly** remains the **players** side. Each counted combatant contributes weight **1**, or **2** if their actor has the **Drilled** talent with at least one advance (localized `NAME.Drilled`). Logging reports weighted `playersSide` and `enemySide` (Hostile + Neutral).
+- *Fixed* **Drilled** handling for numerical superiority: resolve the actor with **`combatant.actor ?? combatant.token?.actor`**, and apply Drilled weight **2** only when **at least one** tallied combatant in the encounter has Drilled (≥1 advance); otherwise all weights are **1**. Debug log includes `encounterHasDrilled` and a sample actor name when true.
+- *Changed* **Drilled** numerical superiority: the tally loop now checks **Friendly / Hostile / Neutral** before resolving weight (same as the encounter gate), so the sheet scan does not run for other dispositions. **`Advantage.totalDrilledAdvances`** emits structured **`GMToolkit.log(false, …)`** probe data (actor, localized compare string, matches, total) when **GM Toolkit** package debug is enabled in _dev-mode_; optional `combatantId` / `tokenId` context is passed from the combat tracker loops only.
+- *Added* **Numerical superiority Drilled tie-break:** when weighted **players** and **enemies** totals **tie** (and the tally is non-zero), the module counts how many tally-eligible combatants on each side have Drilled (≥1 advance) and shifts the group pool toward the side with more such combatants; if those counts also tie, pools stay unchanged. Shared **`_drilledAdvancesScan`** supports this without duplicate probe logs.
+- *Changed* **Combat hook logging:** **`applyGroupNumericalSuperiority`** now emits a forced **`GMToolkit.log(true, …)`** entry (`numericalSuperiority:enter`, combat id, round) when the routine runs; **`combatRound`** logs a **skip reason** (forced when the unique GM passes earlier guards but `combat.round < 1`, otherwise mostly package-debug) when Group Advantage numerical superiority is enabled but the handler does not call **`applyGroupNumericalSuperiority`**. **`combatTurnChange`** “unset flags” uses **`GMToolkit.log(false, …)`** and clarifies it is **post-update bookkeeping**, not the Drilled / numerical-superiority path.
+- *Changed* **`docs/daily/`** development log: entries and **`docs/daily/README.md`** are **English-only**; the **`openspec-apply`** Cursor command step for the daily log now states the same (local copy under `.cursor/` may be gitignored).
+
+## [Version 10.0.1](https://github.com/Jagusti/fvtt-wfrp4e-gmtoolkit/releases/tag/v10.0.1) (2026-04-19)
+- *Changed* **WFRP4e** compatibility to track current system releases ([system documentation](https://moo-man.github.io/WFRP4e-FoundryVTT/)): `module.json` now requires **WFRP4e 9.5.0+** (`verified` **9.5.4**, matching upstream `system.json`).
+- *Added* **`relationships.requires`** for **Warhammer Library** (`warhammer-lib`), mirroring the WFRP4e system dependency ([Warhammer Library module](https://raw.githubusercontent.com/moo-man/WarhammerLibrary-FVTT/3.0.2/module.json)) so Foundry can resolve install order correctly.
+- *Fixed* **`wfrp4e:applyDamage`** automation: guard when `opposedTest` is missing and use logical **OR** (`||`) for `inActiveCombat` checks (previously `|`).
+- *Fixed* **Group Test** `wfrp4e:rollTest` handler: load prior aggregate results with `duplicate`/`spread` instead of invalid `await` on `Array#push`; detect characteristic fallback via **`characteristicKey`** as exposed by `TestWFRP4e` ([rolls API](https://moo-man.github.io/WFRP4e-FoundryVTT/)).
+- *Fixed* **Group Test** fallback characteristic context: merge `setupData`, dialog title, and difficulty options with two **`mergeObject`** calls (third argument is not a data payload in Foundry).
+
+## [Version 10.0.0](https://github.com/Jagusti/fvtt-wfrp4e-gmtoolkit/releases/tag/v10.0.0) (2026-04-19)
+This release targets **Foundry VTT v14** only (v13 and earlier are no longer supported for this line).
+
+- *Changed* **Foundry v14 compatibility** in `module.json` (`minimum`: 14, `verified`: 14.347) and raised the documented WFRP4e `verified` system version to 9.4.1. Use a WFRP4e build that officially supports Foundry 14 when you upgrade the world.
+- *Changed* **Combat hooks** to follow the v14 [hook events](https://foundryvtt.com/api/v14/modules/hookEvents.html) API: `preUpdateCombat` / `updateCombat` logic for advantage is now handled with **`combatRound`** (pre-update, same timing as before for round advances) and **`combatTurnChange`** (post-update when the round changes), including Lose Momentum prompts and Group Advantage numerical superiority.
+- *Changed* **Chat message context menu** integration to the v14 shape of **`getChatMessageContextOptions`**: entries use `label`, `visible`, and `onClick(event, target)` with `ContextMenuEntry`, and the flavour editor escapes existing text for safe HTML attributes.
+- *Changed* **`preUpdateToken`** and **`renderTokenHUD`** usage for v14: token updates use the `TokenDocument` argument; the token HUD accepts either jQuery or `HTMLElement` for the rendered root and scopes the status-effects background style to that HUD.
+- *Added* **Group Advantage: numerical superiority** setting (`automateGroupAdvantageNumericalSuperiority`, default on): when WFRP4e **Group Advantage** is enabled, at the end of each combat round the module compares **Friendly** vs **Hostile** token dispositions in the encounter (ignoring **Neutral**), then shifts one point between the **Players** and **Enemies** group pools (clamped to 0 and the world’s advantage maximum) toward the side with more tokens.
+- *Changed* Check Conditions macro [#344](https://github.com/Jagusti/fvtt-wfrp4e-gmtoolkit/pull/344) to
+  - not prompt for Stunned condition checks. This is [now handled](https://redirect.github.com/moo-man/WFRP4e-FoundryVTT/pull/2507) by the system.
+  - report success and failure context in condition test results.
+
 ## [Version 9.1.1](https://github.com/Jagusti/fvtt-wfrp4e-gmtoolkit/releases/tag/v9.1.1)  (2025-06-15)
 - *Fixed* advantage automation when using Dual Wielder to only increase when both hits are successful. [#338](https://github.com/Jagusti/fvtt-wfrp4e-gmtoolkit/issues/338)
 - *Fixed* issue with combatant not changing at round change when advantage has been automatically applied and when using Group Advantage. [#334](https://github.com/Jagusti/fvtt-wfrp4e-gmtoolkit/issues/334)

@@ -7,12 +7,12 @@ export async function launchGroupTest (groupOptions, testParameters) {
 
 
 export async function runSilentGroupTest (groupOptions, testParameters) {
-  const testSkill = testParameters?.testSkill || game.settings.get("wfrp4e-gm-toolkit", "defaultSkillGroupTest")
+  const testSkill = testParameters?.testSkill || GMToolkit.getSettingCompat("defaultSkillGroupTest")
 
   const testOptions = {
-    bypass: testParameters?.bypass === undefined ? game.settings.get("wfrp4e-gm-toolkit", "bypassTestDialogGroupTest") : testParameters?.bypass,
-    rollMode: testParameters?.rollMode || game.settings.get("wfrp4e-gm-toolkit", "defaultRollModeGroupTest"),
-    fallback: testParameters?.fallback === undefined ? game.settings.get("wfrp4e-gm-toolkit", "fallbackAdvancedSkills") : testParameters?.fallback
+    bypass: testParameters?.bypass === undefined ? GMToolkit.getSettingCompat("bypassTestDialogGroupTest") : testParameters?.bypass,
+    rollMode: testParameters?.rollMode || GMToolkit.getSettingCompat("defaultRollModeGroupTest"),
+    fallback: testParameters?.fallback === undefined ? GMToolkit.getSettingCompat("fallbackAdvancedSkills") : testParameters?.fallback
   }
 
   groupOptions.members = await getGroupMembers(groupOptions?.type)
@@ -30,19 +30,20 @@ export async function runSilentGroupTest (groupOptions, testParameters) {
   runGroupTest(testSkill, testOptions)
 }
 
-export async function getGroupMembers (groupType = game.settings.get("wfrp4e-gm-toolkit", "defaultPartyGroupTest")) {
+export async function getGroupMembers (groupType) {
+  if (!groupType) groupType = GMToolkit.getSettingCompat("defaultPartyGroupTest")
   const members = {
     playerGroup: game.gmtoolkit.utility.getGroup(groupType).map(g => g.uuid),
     selected: game.gmtoolkit.utility.getGroup("company", { interaction: "selected", present: true }).map(g => g.uuid),
     npcTokens: game.gmtoolkit.utility.getGroup("npcTokens").map(g => g.document.uuid),
-    controlled: canvas.tokens.placeables.filter(t => t.controlled & t.actor.type !== "vehicle").map(g => g.document.uuid)
+    controlled: canvas.tokens.placeables.filter(t => t.controlled && t.actor?.type !== "vehicle").map(g => g.document.uuid)
   }
   return members
 }
 
 
 export async function runGroupTest (testSkill, testOptions) {
-  await game.settings.set("wfrp4e-gm-toolkit", "aggregateResultGroupTest", [])
+  await GMToolkit.setSetting("aggregateResultGroupTest", [])
   let actorTestResult = ""
   const activePlayers = getGroup("assigned", { active: true })
   const targetGroup = (testOptions.targetGroup.filter(member => member !== null))
@@ -84,7 +85,7 @@ export async function runGroupTest (testSkill, testOptions) {
     }
   }
 
-  if (game.settings.get("wfrp4e-gm-toolkit", "aggregateResultGroupTest").length > 0) {
+  if (game.settings.get(GMToolkit.MODULE_ID, "aggregateResultGroupTest").length > 0) {
     sendAggregateGroupTestResults(testSkill, testOptions)
   }
 
@@ -92,8 +93,8 @@ export async function runGroupTest (testSkill, testOptions) {
 
 
 async function sendAggregateGroupTestResults (testSkill, testOptions) {
-  const summaryThreshold = await game.settings.get("wfrp4e-gm-toolkit", "summariseResultsThresholdGroupTest")
-  const groupTestResults = await game.settings.get("wfrp4e-gm-toolkit", "aggregateResultGroupTest")
+  const summaryThreshold = GMToolkit.getSettingCompat("summariseResultsThresholdGroupTest")
+  const groupTestResults = game.settings.get(GMToolkit.MODULE_ID, "aggregateResultGroupTest")
 
   // Don't show a summary if a positive threshold isn't set or there are no test results
   if (summaryThreshold <= 0 || groupTestResults.length === 0) return
@@ -104,7 +105,7 @@ async function sendAggregateGroupTestResults (testSkill, testOptions) {
     + `${game.i18n.localize("Modifier")}: ${testOptions.testModifier}\n`
     + `${game.i18n.localize("GMTOOLKIT.Settings.GroupTest.bypassTestDialog.name")}: ${testOptions.bypass}\n`
     + `${game.i18n.localize("GMTOOLKIT.Settings.MakeSecretGroupTests.FallbackAdvanced.name")}: ${testOptions.fallback}\n`
-    + `${game.i18n.localize("DIALOG.DifficultyStep")}: ${game.settings.get("wfrp4e-gm-toolkit", "fallbackAdjustDifficulty")}\n`
+    + `${game.i18n.localize("DIALOG.DifficultyStep")}: ${GMToolkit.getSettingCompat("fallbackAdjustDifficulty")}\n`
 
   let groupTestResultsMessage = `<h3><abbr title="${testParameters}">${game.i18n.localize("GMTOOLKIT.Dialog.MakeSecretGroupTest.RollTitleSummary")}</abbr><strong>${testSkill}</strong></h3>`
   let actorTestResultMessage = ""
@@ -129,7 +130,7 @@ async function sendAggregateGroupTestResults (testSkill, testOptions) {
   })
 
   // clean up aggregate results pseudo-setting
-  await game.settings.set("wfrp4e-gm-toolkit", "aggregateResultGroupTest", [])
+  await GMToolkit.setSetting("aggregateResultGroupTest", [])
 }
 
 
@@ -163,7 +164,7 @@ export async function runActorTest (actor, testSkill, testOptions) {
       // Optionally step-adjust the difficulty in case of fallback on advanced skills
       const stepAdjustDifficulty
         = (actorSkill.advanced.value === "adv")
-          ? game.settings.get("wfrp4e-gm-toolkit", "fallbackAdjustDifficulty")
+          ? GMToolkit.getSettingCompat("fallbackAdjustDifficulty")
           : 0
           // TODO: Refactor to use wfrp4e.utility.alterDifficulty
       const difficultySetting
@@ -178,9 +179,13 @@ export async function runActorTest (actor, testSkill, testOptions) {
           })
       }
 
+      const characteristicContext = foundry.utils.mergeObject(
+        foundry.utils.mergeObject(foundry.utils.duplicate(setupData), dialogFallbackTitle),
+        difficultySetting
+      )
       const characteristicTest = await actor.setupCharacteristic(
         actorSkill.characteristic.value,
-        foundry.utils.mergeObject(setupData, dialogFallbackTitle, difficultySetting)
+        characteristicContext
       )
       return characteristicTest.roll()
     }
@@ -194,11 +199,7 @@ export async function runActorTest (actor, testSkill, testOptions) {
  * @returns {Object} setting: aggregateResultGroupTest
  */
 export async function updateGroupTestResults (actorTestResult) {
-  await game.settings.set(
-    "wfrp4e-gm-toolkit",
-    "aggregateResultGroupTest",
-    actorTestResult
-  )
+  await GMToolkit.setSetting("aggregateResultGroupTest", actorTestResult)
 
   return GMToolkit.log(
     true,
@@ -209,36 +210,35 @@ export async function updateGroupTestResults (actorTestResult) {
 
 // Intercept test result
 Hooks.on("wfrp4e:rollTest", async function (testData, chatData) {
-  if (testData.options.groupTest) {
-    const groupTestResult = []
-    await groupTestResult.push(...game.settings.get("wfrp4e-gm-toolkit", "aggregateResultGroupTest"))
+  if (!testData.options?.groupTest) return
 
-    const testResult = {
-      actor: testData.token || testData.actor,
-      skill: testData?.skill,
-      // characteristic: ( testData?.characteristic ? testData?.characteristicKey ),
-      outcome: testData.outcome,
-      sl: testData.result.SL,
-      description: testData.result.description,
-      roll: testData.result.roll,
-      target: testData.target
-    }
+  const prior = foundry.utils.duplicate(
+    game.settings.get(GMToolkit.MODULE_ID, "aggregateResultGroupTest")
+  ) || []
+  const groupTestResult = [...prior]
 
-    if (testData?.characteristic) (
-      testResult.characteristic = testData.characteristicKey
-    )
-
-    await groupTestResult.push(testResult)
-    // GMToolkit.log(true, "groupTestResult: this test result", testResult)
-    // GMToolkit.log(true, "groupTestResult: groupTestResult", groupTestResult)
-
-    if (game.user.isUniqueGM) {
-      return await updateGroupTestResults(groupTestResult)
-    } else {
-      return game.socket.emit(`module.${GMToolkit.MODULE_ID}`,
-        { type: "aggregateGroupTestResults", payload: groupTestResult })
-    }
-
+  const testResult = {
+    actor: testData.token || testData.actor,
+    skill: testData?.skill,
+    outcome: testData.outcome,
+    sl: testData.result.SL,
+    description: testData.result.description,
+    roll: testData.result.roll,
+    target: testData.target
   }
+
+  if (testData.characteristicKey) {
+    testResult.characteristic = testData.characteristicKey
+  } else if (testData.constructor?.name === "CharacteristicTest" && testData.preData?.item) {
+    testResult.characteristic = testData.preData.item
+  }
+
+  groupTestResult.push(testResult)
+
+  if (game.user.isUniqueGM) {
+    return await updateGroupTestResults(groupTestResult)
+  }
+  return game.socket.emit(`module.${GMToolkit.MODULE_ID}`,
+    { type: "aggregateGroupTestResults", payload: groupTestResult })
 })
 

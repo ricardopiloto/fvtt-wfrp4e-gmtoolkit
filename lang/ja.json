@@ -24,6 +24,8 @@
     "GMTOOLKIT.Settings.Advantage.Automate.CombatJoin.hint" : "空の遭遇が作成されたときや戦闘が開始されたときに代わり、コンバットトラッカーに追加されたコマのみ優位がクリアされます（グループ優位を使用していない場合）。",
     "GMTOOLKIT.Settings.Advantage.Automate.CombatLeave.name" : "戦闘離脱",
     "GMTOOLKIT.Settings.Advantage.Automate.CombatLeave.hint" : "戦闘終了時の代わりに戦闘トラッカーから削除されたときにコマの優位をクリアします。",
+    "GMTOOLKIT.Settings.Advantage.Automate.GroupNumericalSuperiority.name" : "優位の喪失",
+    "GMTOOLKIT.Settings.Advantage.Automate.GroupNumericalSuperiority.hint" : "WFRP4eのグループ優位が有効な場合、各戦闘ラウンドの終了時（ラウンド数が進んだ時）に戦闘参加者（Friendly x Hostile）を比較し、Up in Arms の「Losing Advantage」に従って優位を増減します（Drilled の才能を考慮します）。",
 
     "GMTOOLKIT.Settings.TokenHudExtensions.Enabled.name" : "コマのHUD拡張を許可",
     "GMTOOLKIT.Settings.TokenHudExtensions.Enabled.hint" : "操作中のコマHUDに、主要な能力値や技能のツールチップとインタラクションを追加します。既定値は「許可」です。",
@@ -39,6 +41,7 @@
 
     "GMTOOLKIT.Dialog.Apply": "適用",
     "GMTOOLKIT.Dialog.Cancel" : "取消",
+    "GMTOOLKIT.Dialog.Maintenance.Empty" : "空",
     "GMTOOLKIT.Dialog.None" : "なし",
     "GMTOOLKIT.Dialog.NotAssigned" : "選択されていない",
     "GMTOOLKIT.Dialog.ChooseTargets" : "目標の選択",

@@ -1,3 +1,5 @@
+import GMToolkit from "../modules/gm-toolkit.mjs"
+
 export class DamageConsole
   extends HandlebarsApplicationMixin(ApplicationV2) {
 
@@ -21,7 +23,7 @@ export class DamageConsole
 
   static PARTS = {
     form: {
-      template: "modules/wfrp4e-gm-toolkit/templates/damage.hbs"
+      template: GMToolkit.modulePath("templates/damage.hbs")
     },
     footer: {
       template: "templates/generic/form-footer.hbs"
@@ -36,7 +38,7 @@ export class DamageConsole
       /* Uncomment this to leverage or add user defined default group,
         * such as that used for Group Tests
       options: {
-        type: this.object.groupOptions?.type || game.settings.get("wfrp4e-gm-toolkit", "defaultPartyGroupTest")
+        type: this.object.groupOptions?.type || GMToolkit.getSettingCompat("defaultPartyGroupTest")
       } */
     }
 

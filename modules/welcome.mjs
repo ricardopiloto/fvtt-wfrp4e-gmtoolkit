@@ -42,7 +42,7 @@ export class GMToolkitWelcome {
       releases: game.modules.get(GMToolkit.MODULE_ID).changelog
     }
 
-    foundry.applications.handlebars.renderTemplate("modules/wfrp4e-gm-toolkit/templates/welcomeMessage.hbs", templateData).then(html => {
+    foundry.applications.handlebars.renderTemplate(GMToolkit.modulePath("templates/welcomeMessage.hbs"), templateData).then(html => {
       let options = {
         whisper: [game.user.id],
         speaker: { alias: GMToolkit.MODULE_NAME },
