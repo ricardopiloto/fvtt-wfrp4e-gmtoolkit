@@ -7,7 +7,6 @@ on:
 # GITHUB_TOKEN defaults to read-only; uploading release assets requires write access.
 permissions:
   contents: write
-  discussions: write
 
 jobs:
   build:
@@ -65,4 +64,3 @@ jobs:
           tag: ${{ github.event.release.tag_name }}
           body: ${{ github.event.release.body }}
           generateReleaseNotes: true
-          discussionCategory: "Announcements"
