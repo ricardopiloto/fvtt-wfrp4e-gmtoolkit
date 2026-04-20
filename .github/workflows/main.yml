@@ -4,6 +4,11 @@ on:
   release:
     types: [published]
 
+# GITHUB_TOKEN defaults to read-only; uploading release assets requires write access.
+permissions:
+  contents: write
+  discussions: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
