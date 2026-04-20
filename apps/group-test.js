@@ -1,4 +1,5 @@
 import { runGroupTest } from "../modules/group-test.mjs"
+import GMToolkit from "../modules/gm-toolkit.mjs"
 
 export class GroupTest
   extends HandlebarsApplicationMixin(ApplicationV2) {
@@ -23,7 +24,7 @@ export class GroupTest
 
   static PARTS = {
     form: {
-      template: "modules/wfrp4e-gm-toolkit/templates/group-test.hbs"
+      template: GMToolkit.modulePath("templates/group-test.hbs")
     },
     footer: {
       template: "templates/generic/form-footer.hbs"
@@ -41,29 +42,29 @@ export class GroupTest
 
     context.skills = {
       list: game.gmtoolkit.skills,
-      target: game.settings.get("wfrp4e-gm-toolkit", "defaultSkillGroupTest"),
-      quickTest1: game.settings.get("wfrp4e-gm-toolkit", "quicktest1GroupTest"),
-      quickTest2: game.settings.get("wfrp4e-gm-toolkit", "quicktest2GroupTest"),
-      quickTest3: game.settings.get("wfrp4e-gm-toolkit", "quicktest3GroupTest"),
-      quickTest4: game.settings.get("wfrp4e-gm-toolkit", "quicktest4GroupTest")
+      target: GMToolkit.getSettingCompat("defaultSkillGroupTest"),
+      quickTest1: GMToolkit.getSettingCompat("quicktest1GroupTest"),
+      quickTest2: GMToolkit.getSettingCompat("quicktest2GroupTest"),
+      quickTest3: GMToolkit.getSettingCompat("quicktest3GroupTest"),
+      quickTest4: GMToolkit.getSettingCompat("quicktest4GroupTest")
     }
 
     context.skills.target
-      = (game.settings.get("wfrp4e-gm-toolkit", "defaultSkillGroupTest") === "null")
+      = (GMToolkit.getSettingCompat("defaultSkillGroupTest") === "null")
         ? ""
-        : game.settings.get("wfrp4e-gm-toolkit", "defaultSkillGroupTest")
+        : GMToolkit.getSettingCompat("defaultSkillGroupTest")
     context.skills.custom = context.skills.list.map(m => m.name).includes(context.skills.target) ? "" : context.skills.target
 
     context.testParameters = {
-      testModifier: game.settings.get("wfrp4e-gm-toolkit", "defaultTestModifierGroupTest"),
-      rollMode: game.settings.get("wfrp4e-gm-toolkit", "defaultRollModeGroupTest"),
-      testDifficulty: game.settings.get("wfrp4e-gm-toolkit", "defaultDifficultyGroupTest")
+      testModifier: GMToolkit.getSettingCompat("defaultTestModifierGroupTest"),
+      rollMode: GMToolkit.getSettingCompat("defaultRollModeGroupTest"),
+      testDifficulty: GMToolkit.getSettingCompat("defaultDifficultyGroupTest")
       // _slBonus: this.object.testParameters?.slBonus || 0,
       // _successBonus: this.object.testParameters?.successBonus || 0,
     }
 
-    context.testParameters.bypass = this.object?.testParameters?.bypass === undefined ? game.settings.get("wfrp4e-gm-toolkit", "bypassTestDialogGroupTest") : this.object?.testParameters?.bypass
-    context.testParameters.fallback = this.object?.testParameters?.fallback === undefined ? game.settings.get("wfrp4e-gm-toolkit", "fallbackAdvancedSkills") : this.object?.testParameters?.fallback
+    context.testParameters.bypass = this.object?.testParameters?.bypass === undefined ? GMToolkit.getSettingCompat("bypassTestDialogGroupTest") : this.object?.testParameters?.bypass
+    context.testParameters.fallback = this.object?.testParameters?.fallback === undefined ? GMToolkit.getSettingCompat("fallbackAdvancedSkills") : this.object?.testParameters?.fallback
 
     context.rollModeOptions = CONFIG.Dice.rollModes
     context.difficultyOptions = game.wfrp4e.config.difficultyLabels
@@ -71,7 +72,7 @@ export class GroupTest
     // Set group defaults if not provided
     context.group = {
       options: {
-        type: this.object?.groupOptions?.type || game.settings.get("wfrp4e-gm-toolkit", "defaultPartyGroupTest") // ,
+        type: this.object?.groupOptions?.type || GMToolkit.getSettingCompat("defaultPartyGroupTest") // ,
         // _present: this.object.groupOptions?.present || true,
         // _interaction: this.object.groupOptions?.interaction || undefined
       }
@@ -214,9 +215,9 @@ function toggleGroupedSkill (control) {
   }
   if (control.value === "") {
     field.value
-    = (game.settings.get("wfrp4e-gm-toolkit", "defaultSkillGroupTest") === "null")
+    = (GMToolkit.getSettingCompat("defaultSkillGroupTest") === "null")
         ? ""
-        : game.settings.get("wfrp4e-gm-toolkit", "defaultSkillGroupTest")
+        : GMToolkit.getSettingCompat("defaultSkillGroupTest")
   }
 }
 

@@ -24,6 +24,8 @@
     "GMTOOLKIT.Settings.Advantage.Automate.CombatJoin.hint" : "Clear Advantage from tokens when they are added to the combat tracker (if not using Group Advantage), not when a blank encounter is created or combat is begun.",
     "GMTOOLKIT.Settings.Advantage.Automate.CombatLeave.name" : "Leaving combat",
     "GMTOOLKIT.Settings.Advantage.Automate.CombatLeave.hint" : "Clear Advantage from tokens when they are removed from the combat tracker, rather than when combat is ended.",
+    "GMTOOLKIT.Settings.Advantage.Automate.GroupNumericalSuperiority.name" : "Perte d’Avantage",
+    "GMTOOLKIT.Settings.Advantage.Automate.GroupNumericalSuperiority.hint" : "Quand l’Avantage de Groupe WFRP4e est activé, à la fin de chaque round de combat (quand le numéro de round augmente), comparez les combattants (Friendly x Hostile) et augmentez/réduisez l’Avantage selon « Losing Advantage » dans Up in Arms (le talent Drilled est pris en compte).",
 
     "GMTOOLKIT.Settings.TokenHudExtensions.Enabled.name" : "Activer les Extensions de l'ATH de Pion",
     "GMTOOLKIT.Settings.TokenHudExtensions.Enabled.hint" : "Crée des info-bulles et des interactions pour les attributs et les Compétences clés disponibles grâce à l'ATH des Pions contrôlés. Activé par défaut.",
@@ -39,6 +41,7 @@
 
     "GMTOOLKIT.Dialog.Apply" : "Appliquer",
     "GMTOOLKIT.Dialog.Cancel" : "Annuler",
+    "GMTOOLKIT.Dialog.Maintenance.Empty" : "Vide",
     "GMTOOLKIT.Dialog.None" : "None",
     "GMTOOLKIT.Dialog.NotAssigned" : "Not Assigned",
     "GMTOOLKIT.Dialog.ChooseTargets" : "Choose Targets",

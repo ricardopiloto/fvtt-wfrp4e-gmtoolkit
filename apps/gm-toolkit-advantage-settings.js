@@ -22,7 +22,8 @@ export default class GMToolkitAdvantageSettings
 
   static PARTS = {
     form: {
-      template: "modules/wfrp4e-gm-toolkit/templates/gm-toolkit-settings.html"
+      template: GMToolkit.modulePath("templates/gm-toolkit-settings.html"),
+      classes: ["gmtoolkit", "scrollable"]
     },
     footer: {
       template: "templates/generic/form-footer.hbs"

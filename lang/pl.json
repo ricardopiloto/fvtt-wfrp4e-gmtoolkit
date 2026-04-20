@@ -24,6 +24,8 @@
     "GMTOOLKIT.Settings.Advantage.Automate.CombatJoin.hint": "Usuń Przewagę z tokenów po dodaniu ich do wskaźnika walki (jeśli nie korzystasz z Przewagi Grupowej), a nie po utworzeniu pustej potyczki lub rozpoczęciu walki.",
     "GMTOOLKIT.Settings.Advantage.Automate.CombatLeave.name": "Opuszczenie Walki",
     "GMTOOLKIT.Settings.Advantage.Automate.CombatLeave.hint": "Usuń Przewagę z tokenów, gdy zostaną usunięte z walki, a nie po zakończeniu walki.",
+    "GMTOOLKIT.Settings.Advantage.Automate.GroupNumericalSuperiority.name": "Utrata przewagi",
+    "GMTOOLKIT.Settings.Advantage.Automate.GroupNumericalSuperiority.hint": "Gdy włączona jest Grupowa Przewaga WFRP4e, na koniec każdej rundy walki (gdy zwiększa się numer rundy) porównaj walczących (Friendly x Hostile) i zwiększ/zmniejsz Przewagę zgodnie z „Losing Advantage” z Up in Arms (uwzględnia się talent Drilled).",
 
     "GMTOOLKIT.Settings.TokenHudExtensions.Enabled.name": "Włącz rozszerzone widoki tokenów",
     "GMTOOLKIT.Settings.TokenHudExtensions.Enabled.hint": "Udostępniaj podpowiedzi i interakcje dotyczące kluczowych atrybutów i umiejętności z poziomu kontrolowanych tokenów. Domyślnie włączone.",
@@ -39,6 +41,7 @@
 
     "GMTOOLKIT.Dialog.Apply": "Zastosuj",
     "GMTOOLKIT.Dialog.Cancel": "Anuluj",
+    "GMTOOLKIT.Dialog.Maintenance.Empty" : "Puste",
     "GMTOOLKIT.Dialog.None": "Brak",
     "GMTOOLKIT.Dialog.NotAssigned": "Nie przypisano",
     "GMTOOLKIT.Dialog.ChooseTargets": "Wybierz cele",

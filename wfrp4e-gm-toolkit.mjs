@@ -86,7 +86,7 @@ Hooks.once("ready", async function () {
   const spectators = GMToolkitUtility.getGroup("spectators").map(i => ` ${i.name}`)
   if (spectators.length > 0) {
     GMToolkit.log(true, `Spectators: ${spectators}`)
-    if (!game.settings.get("wfrp4e-gm-toolkit", "suppressSpectatorNotice")) {
+    if (!GMToolkit.getSettingCompat("suppressSpectatorNotice")) {
       ui.notifications.error(`${game.i18n.format("GMTOOLKIT.Message.Spectators", { spectators })}`, { permanent: true, console: false })
     }
   }
@@ -117,19 +117,25 @@ Hooks.once("devModeReady", ({ registerPackageDebugFlag }) => {
   registerPackageDebugFlag(GMToolkit.MODULE_ID)
 })
 
-// Disable movement on holding scene
-Hooks.on("preUpdateToken", (token, change) => {
-  GMToolkit.log(false, `${token.x} -> ${change?.x}, ${token.y} -> ${change?.y}`)
-  if (!game.user.isGM && game.canvas.scene.name === game.settings.get("wfrp4e-gm-toolkit", "holdingScene")) {
-    if (change?.x) {change.x = token.x}
-    if (change?.y) {change.y = token.y}
+// Disable movement on holding scene (preUpdateToken: TokenDocument, diff, operation, userId)
+Hooks.on("preUpdateToken", (tokenDocument, change) => {
+  GMToolkit.log(false, `${tokenDocument.x} -> ${change?.x}, ${tokenDocument.y} -> ${change?.y}`)
+  if (!game.user.isGM && game.canvas.scene.name === GMToolkit.getSettingCompat("holdingScene")) {
+    if (change?.x) {change.x = tokenDocument.x}
+    if (change?.y) {change.y = tokenDocument.y}
   }
 })
 
-// Display Token Hud Extension if enabled
+// Display Token Hud Extension if enabled (html may be jQuery or HTMLElement in v14)
 Hooks.on("renderTokenHUD", (app, html, data) => {
-  if (game.settings.get(GMToolkit.MODULE_ID, "enableTokenHudExtensions")) TokenHudExtension.addTokenHudExtensions(app, html, data)
-  document.getElementsByClassName("status-effects")[0].style = `background: ${game.settings.get("wfrp4e-gm-toolkit", "tokenHudStatusEffectsBackground")}`
+  const $html = html?.jquery ? html : $(html)
+  if (game.settings.get(GMToolkit.MODULE_ID, "enableTokenHudExtensions")) {
+    TokenHudExtension.addTokenHudExtensions(app, $html, data)
+  }
+  const statusEffects = $html.find(".status-effects")[0]
+  if (statusEffects) {
+    statusEffects.style.background = `${GMToolkit.getSettingCompat("tokenHudStatusEffectsBackground")}`
+  }
 })
 
 // If Babele is installed, wait until it completed initialisation and then compile localized skills list used for Group Tests
@@ -147,54 +153,54 @@ Hooks.once("babele.ready", async function () {
 /*  Entry Context                               */
 /* -------------------------------------------- */
 
-Hooks.on("getChatMessageContextOptions", (html, options) => {
-  options.push(
-    {
-      name: game.i18n.localize("GMTOOLKIT.ChatFlavour.Title"),
-      icon: '<i class="fas fa-pen-fancy"></i>',
-      condition: game.user.isGM,
-      callback: li => {
-        const message = game.messages.get(li.dataset.messageId)
-        let result
-        foundry.applications.api.DialogV2.wait({
-          window: { title: game.i18n.localize("GMTOOLKIT.ChatFlavour.Title") },
-          rejectClose: false,
-          content: `<form>
-                <div class="form-group">
-                  <input type="text"
-                    id="messageflavor"
-                    name="messageflavor"
-                    placeholder="${game.i18n.localize("GMTOOLKIT.ChatFlavour.Placeholder")}"
-                    value="${message?.flavor}"
-                  />
-                </div>
-                </form>`,
-          buttons: [
-            {
-              icon: "<i class='fas fa-check'></i>",
-              label: game.i18n.localize("GMTOOLKIT.Dialog.Apply"),
-              action: "apply",
-              default: "yes",
-              callback: (event, button, dialog) => {
-                result = new foundry.applications.ux
-                  .FormDataExtended(button.form).object
-              }
-            },
-            {
-              icon: "<i class='fas fa-times'></i>",
-              label: game.i18n.localize("GMTOOLKIT.Dialog.Cancel"),
-              action: "cancel"
+Hooks.on("getChatMessageContextOptions", (application, menuItems) => {
+  menuItems.push({
+    label: game.i18n.localize("GMTOOLKIT.ChatFlavour.Title"),
+    icon: "fas fa-pen-fancy",
+    visible: game.user.isGM,
+    onClick: (event, target) => {
+      const messageEl = target.closest("[data-message-id]")
+      const messageId = messageEl?.dataset.messageId
+      const message = game.messages.get(messageId)
+      let result
+      foundry.applications.api.DialogV2.wait({
+        window: { title: game.i18n.localize("GMTOOLKIT.ChatFlavour.Title") },
+        rejectClose: false,
+        content: `<form>
+              <div class="form-group">
+                <input type="text"
+                  id="messageflavor"
+                  name="messageflavor"
+                  placeholder="${game.i18n.localize("GMTOOLKIT.ChatFlavour.Placeholder")}"
+                  value="${Handlebars.escapeExpression(message?.flavor ?? "")}"
+                />
+              </div>
+              </form>`,
+        buttons: [
+          {
+            icon: "<i class='fas fa-check'></i>",
+            label: game.i18n.localize("GMTOOLKIT.Dialog.Apply"),
+            action: "apply",
+            default: "yes",
+            callback: (event, button, dialog) => {
+              result = new foundry.applications.ux
+                .FormDataExtended(button.form).object
             }
-          ],
-          close: () => {
-            console.log(result)
-            if (result) {
-              const messageFlavor = result.messageflavor
-              message.update({ flavor: messageFlavor })
-            }
+          },
+          {
+            icon: "<i class='fas fa-times'></i>",
+            label: game.i18n.localize("GMTOOLKIT.Dialog.Cancel"),
+            action: "cancel"
           }
-        })
-      }
+        ],
+        close: () => {
+          console.log(result)
+          if (result) {
+            const messageFlavor = result.messageflavor
+            message?.update({ flavor: messageFlavor })
+          }
+        }
+      })
     }
-  )
+  })
 })

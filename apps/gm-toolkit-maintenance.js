@@ -26,7 +26,7 @@ export default class GMToolkitMaintenance
 
   static PARTS = {
     form: {
-      template: "/modules/wfrp4e-gm-toolkit/templates/gm-toolkit-maintenance.html",
+      template: `/${GMToolkit.modulePath("templates/gm-toolkit-maintenance.html")}`,
       classes: ["gmtoolkit", "scrollable"]
     },
     footer: {

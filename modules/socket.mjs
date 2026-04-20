@@ -97,11 +97,7 @@ export default class SocketHandlers {
       `Socket: ${data.type}. Only GMs can update aggregate Group Test results.`
     )
 
-    const response = await game.settings.set(
-      "wfrp4e-gm-toolkit",
-      "aggregateResultGroupTest",
-      data.payload
-    )
+    const response = await GMToolkit.setSetting("aggregateResultGroupTest", data.payload)
 
     GMToolkit.log(true, `Socket: ${data.type}. Results.`, response)
 

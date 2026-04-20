@@ -25,7 +25,7 @@ export default class GMToolkitGroupTestSettings
 
   static PARTS = {
     form: {
-      template: "modules/wfrp4e-gm-toolkit/templates/gm-toolkit-settings.html",
+      template: GMToolkit.modulePath("templates/gm-toolkit-settings.html"),
       classes: ["gmtoolkit", "scrollable"]
     },
     footer: {

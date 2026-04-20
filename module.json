@@ -1,17 +1,17 @@
 {
-  "id": "wfrp4e-gm-toolkit",
-  "title": "GM Toolkit (WFRP4e)",
+  "id": "wfrp4e-gm-toolkit-jiban",
+  "title": "GM Toolkit (WFRP4e) - Jiban",
   "description": "Utilities for WFRP4e GMs",
-  "version": "v9.1.1",
+  "version": "v10.0.3",
   "compatibility": {
     "minimum": "13",
-    "maximum": "13",
-    "verified": "13.346"
+    "verified": "14.347"
   },
   "authors": [
     {
-      "name": "Jagusti",
-      "discord": "Jagusti",
+      "name": "Ricardo Sobral",
+      "email": "ac.ricardosobral@gmail.com",
+      "discord": "RicardoSobral",
       "flags": {}
     }
   ],
@@ -21,8 +21,8 @@
         "id": "wfrp4e",
         "type": "system",
         "compatibility": {
-          "minimum": "9.1.3",
-          "verified": "9.1.4"
+          "minimum": "9.5.0",
+          "verified": "9.5.4"
         }
       }
     ]
@@ -67,6 +67,12 @@
       "flags": {}
     },
     {
+      "lang": "pt-BR",
+      "name": "Português (Brasil)",
+      "path": "lang/pt-br.json",
+      "flags": {}
+    },
+    {
       "lang": "fr",
       "name": "French",
       "path": "lang/fr.json",
@@ -92,10 +98,8 @@
     }
   ],
   "socket": true,
-  "url": "https://github.com/Jagusti/fvtt-wfrp4e-gmtoolkit",
-  "manifest": "https://github.com/Jagusti/fvtt-wfrp4e-gmtoolkit/releases/latest/download/module.json",
-  "download": "https://github.com/Jagusti/fvtt-wfrp4e-gmtoolkit/releases/download/v9.1.1/wfrp4e-gm-toolkit.zip",
-  "bugs": "https://github.com/Jagusti/fvtt-wfrp4e-gmtoolkit/issues",
-  "changelog": "https://github.com/Jagusti/fvtt-wfrp4e-gmtoolkit/releases",
-  "readme": "https://github.com/Jagusti/fvtt-wfrp4e-gmtoolkit/wiki"
+  "url": "https://github.com/ricardopiloto/fvtt-wfrp4e-gmtoolkit",
+  "manifest": "https://github.com/ricardopiloto/fvtt-wfrp4e-gmtoolkit/releases/latest/download/module.json",
+  "download": "https://github.com/ricardopiloto/fvtt-wfrp4e-gmtoolkit/releases/download/v10.0.3/wfrp4e-gm-toolkit-jiban.zip",
+  "bugs": "https://github.com/ricardopiloto/fvtt-wfrp4e-gmtoolkit/issues"
 }

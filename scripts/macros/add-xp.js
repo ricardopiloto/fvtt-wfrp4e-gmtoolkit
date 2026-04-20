@@ -7,12 +7,12 @@ async function addXP () {
   if (game.user.targets.size < 1) {
     // (1) all assigned player characters
     awardees = game.gmtoolkit.utility
-      .getGroup(game.settings.get("wfrp4e-gm-toolkit", "defaultPartySessionTurnover"))
+      .getGroup(game.gmtoolkit.module.getSettingCompat("defaultPartySessionTurnover"))
       .filter(g => g.type === "character")
   } else {
     // (2) all targeted tokens of awardee selection
     awardees = game.gmtoolkit.utility
-      .getGroup(game.settings.get("wfrp4e-gm-toolkit", "defaultPartySessionTurnover"), { interaction: "targeted" })
+      .getGroup(game.gmtoolkit.module.getSettingCompat("defaultPartySessionTurnover"), { interaction: "targeted" })
       .filter(g => g.type === "character")
   }
 
@@ -20,12 +20,12 @@ async function addXP () {
   if (awardees.length < 1) return ui.notifications.error(game.i18n.localize("GMTOOLKIT.Token.TargetPCs"), {})
 
   // Get  session ID/date, default XP award and default reason
-  const XP = Number(game.settings.get("wfrp4e-gm-toolkit", "addXPDefaultAmount"))
-  let reason = (game.settings.get("wfrp4e-gm-toolkit", "addXPDefaultReason") === "null")
+  const XP = Number(game.gmtoolkit.module.getSettingCompat("addXPDefaultAmount"))
+  let reason = (game.gmtoolkit.module.getSettingCompat("addXPDefaultReason") === "null")
     ? ""
-    : game.settings.get("wfrp4e-gm-toolkit", "addXPDefaultReason")
+    : game.gmtoolkit.module.getSettingCompat("addXPDefaultReason")
   if (reason) {
-    reason = game.settings.get("wfrp4e-gm-toolkit", "addXPDefaultReason")
+    reason = game.gmtoolkit.module.getSettingCompat("addXPDefaultReason")
     const session = game.gmtoolkit.utility.getSession()
     reason = (session.date)
       ? reason.replace("(%date%)", `(${session.date})`)
@@ -36,7 +36,7 @@ async function addXP () {
   }
 
   // Prompt for XP if option is set
-  (game.settings.get("wfrp4e-gm-toolkit", "addXPPrompt"))
+  (game.gmtoolkit.module.getSettingCompat("addXPPrompt"))
     ? promptForXP( awardees, XP, reason )
     : updateXP( awardees, XP, reason )
 

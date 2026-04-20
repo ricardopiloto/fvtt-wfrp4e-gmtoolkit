@@ -5,7 +5,7 @@ async function pullEveryoneToScene () {
     ui.notifications.error(game.i18n.localize("GMTOOLKIT.Message.ScenePullActivate.NoPermission"))
   }
 
-  switch (game.settings.get("wfrp4e-gm-toolkit", "scenePullActivate")) {
+  switch (game.gmtoolkit.module.getSettingCompat("scenePullActivate")) {
     case "prompt":
       const promptPullActivate = await foundry.applications.api.DialogV2.wait({
         window: { title: game.i18n.localize("GMTOOLKIT.Dialog.ScenePullActivate.Title") },
