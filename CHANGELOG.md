@@ -6,6 +6,7 @@ All notable changes to this project will be documented in this file.  The format
 ## Unreleased
 See [Issue Backlog](../../issues) and [Roadmap](../../milestones).
 
+## [Version 10.0.5](https://github.com/ricardopiloto/fvtt-wfrp4e-gmtoolkit/releases/tag/v10.0.5) (2026-04-21)
 - *Fixed* **Update GM Toolkit Content** (Maintenance): the dialog no longer assigns **`thumbnail`** onto world **`Macro` / `RollTable`** documents (read-only in current Foundry); list rows are **plain objects** with computed **`thumbnail`** for the template (`apps/gm-toolkit-maintenance.js`).
 
 - *Fixed* **Compendium sources (`src/packs`)**: embedded macro `command` strings and table documents no longer reference the upstream module id **`wfrp4e-gm-toolkit`** or **`modules/wfrp4e-gm-toolkit/...`** paths; packaged QuickMenu templates, settings keys, and document flags use this fork’s **`wfrp4e-gm-toolkit-jiban`** scope so release zips match runtime.
