@@ -1,7 +1,6 @@
 wfrp4e-gm-toolkit-jiban.lock
 node_modules/*
 .vscode/*
-packs/*/*
 .fvttrc.yml
 .idea/
 .workshop/

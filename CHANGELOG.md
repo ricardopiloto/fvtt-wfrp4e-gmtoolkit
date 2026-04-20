@@ -6,6 +6,12 @@ All notable changes to this project will be documented in this file.  The format
 ## Unreleased
 See [Issue Backlog](../../issues) and [Roadmap](../../milestones).
 
+- *Fixed* **Configure Group Test Options** (module settings menu) appearing **empty** when **Babele** defers initialization: `registerGroupTestSettings` is now **awaited** from `GMToolkitSettings.register`, guarded **idempotent**, invoked from **`babele.ready`** with proper `await`, and backed by a **20s fallback** that compiles skills and registers if registration still did not run (e.g. missing `babele.ready` on some hosts). **Forced** `GMToolkit.log(true, …)` diagnostics summarize Babele state, skill counts, register vs defer, and registered `grouptest` setting count (troubleshooting Babele 2.7.x + production servers).
+
+- *Fixed* **Update GM Toolkit Content** (Maintenance): **local vs compendium** versions now use **`GMToolkit.getFlagCompat`** for world entries and **`wfrp4e-gm-toolkit-jiban` / legacy** flag scopes for compendium entries (replacing hardcoded `wfrp4e-gm-toolkit` only). When there are **no** macros/tables in GM Toolkit folders, the dialog lists **compendium-only** rows with **`GMTOOLKIT.Dialog.Maintenance.Empty` → compendium version**; missing compendium pack returns an empty list safely.
+
+- *Changed* **Maintenance** folder discovery now calls **`getGMToolkitFolderIds`** (`modules/utility.mjs`) so macro/table lists match **Update Macros / RollTables** and include **nested** GM Toolkit folders (same logic as `refreshToolkitContent`).
+
 ## [Version 10.0.3](https://github.com/ricardopiloto/fvtt-wfrp4e-gmtoolkit/releases/tag/v10.0.3) (2026-04-20)
 - *Fixed* **Advantage Handling settings:** options no longer appear duplicated in “Configure Advantage Handling”.
 - *Changed* **Losing Advantage** (Group Advantage automation): removed forced debug logs from `applyGroupNumericalSuperiority` and made `combatRound` skip diagnostics non-forced by default.

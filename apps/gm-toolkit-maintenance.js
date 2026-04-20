@@ -1,5 +1,5 @@
 import GMToolkit from "../modules/gm-toolkit.mjs"
-import { refreshToolkitContent, strip } from "../modules/utility.mjs"
+import { getGMToolkitFolderIds, refreshToolkitContent, strip } from "../modules/utility.mjs"
 
 export default class GMToolkitMaintenance
   extends HandlebarsApplicationMixin(ApplicationV2) {
@@ -77,14 +77,26 @@ export default class GMToolkitMaintenance
 
 } // End class GMToolkitMaintenance
 
+/**
+ * Read toolkit version from compendium index entries (flags may use canonical or legacy module scope).
+ * @param {ClientDocument|object} d Compendium index document or plain object with flags
+ * @returns {string|undefined}
+ */
+function getCompendiumToolkitVersion (d) {
+  if (!d) return undefined
+  const raw = d.flags ?? d.toObject?.()?.flags ?? {}
+  for (const scope of [GMToolkit.MODULE_ID, ...GMToolkit.LEGACY_MODULE_IDS]) {
+    const ver = raw[scope]?.version
+    if (ver !== undefined && ver !== null && ver !== "") return ver
+  }
+  return undefined
+}
+
 async function buildLocalizedContent (documentType) {
   GMToolkit.log(false, "Starting buildLocalizedContent")
 
-  const gmtFolders = await game.folders.tree.entries
-    .filter(f => (f.name === game.gmtoolkit.module.MODULE_NAME
-      || f.ancestors[0]?.name === game.gmtoolkit.module.MODULE_NAME
-      || f.ancestors[1]?.name === game.gmtoolkit.module.MODULE_NAME))
-    .map(g => g.id)
+  const folderType = documentType === game.macros ? "Macro" : "RollTable"
+  const gmtFolders = getGMToolkitFolderIds(folderType)
   const toolkitContent = documentType.filter(
     m => gmtFolders.includes(m.folder?.id)
   ).sort((a, b) => a.name.localeCompare(b.name))
@@ -102,15 +114,41 @@ async function buildLocalizedContent (documentType) {
     pack = game.packs.get(`${game.gmtoolkit.module.MODULE_ID}.gm-toolkit-tables`)
   }
 
+  if (!pack) {
+    GMToolkit.log(false, "Maintenance: compendium pack not found for", documentType === game.macros ? "macros" : "tables")
+    return []
+  }
+
   // Get Compendium documents
   const documents = await pack.getDocuments()
+  const emptyLabel = game.i18n.localize("GMTOOLKIT.Dialog.Maintenance.Empty")
 
-  // Build localized array
+  // No local macros/tables: list compendium rows with Empty -> compendium version
+  if (toolkitContent.length === 0) {
+    const rows = documents
+      .slice()
+      .sort((a, b) => a.name.localeCompare(b.name))
+      .map(d => ({
+        id: d.id,
+        name: d.name,
+        img: d.img,
+        thumbnail: d.thumbnail ?? d.img ?? "icons/svg/dice-target.svg",
+        translationKey: strip(d.name, translationKeyPrefix, "."),
+        localVersion: emptyLabel,
+        compendiumVersion: getCompendiumToolkitVersion(d)
+      }))
+    GMToolkit.log(false, "buildLocalizedContent: empty local folder, compendium-only rows =", rows.length)
+    return rows
+  }
+
+  // Build localized array from world documents
   for (const content of toolkitContent) {
     content.translationKey = strip(content.name, translationKeyPrefix, ".")
+    content.localVersion = GMToolkit.getFlagCompat(content, "version")
     content.compendiumVersion = documents
       .filter(d => d.name === game.i18n.localize(content.translationKey))
-      .map(i => i.flags["wfrp4e-gm-toolkit"]?.version)[0]
+      .map(d => getCompendiumToolkitVersion(d))[0]
+    content.thumbnail = content.thumbnail ?? content.img ?? "icons/svg/dice-target.svg"
     contentArray.push(content)
   }
 

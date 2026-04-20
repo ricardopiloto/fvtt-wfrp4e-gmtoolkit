@@ -9,7 +9,7 @@ import { strip } from "./utility.mjs"
 
 export class GMToolkitSettings {
 
-  static register () {
+  static async register () {
     const registerSettingCompat = (key, data) => {
       game.settings.register(GMToolkit.MODULE_ID, key, data)
       for (const legacyId of GMToolkit.LEGACY_MODULE_IDS) {
@@ -312,7 +312,13 @@ export class GMToolkitSettings {
       type: GMToolkitGroupTestSettings,
       restricted: true
     })
-    if (!game.babele || game.babele.initialized) registerGroupTestSettings()
+    const deferGroupTest = game.babele && !game.babele.initialized
+    GMToolkit.log(true, deferGroupTest
+      ? "GMToolkitSettings.register: deferring registerGroupTestSettings (await babele.ready or fallback timer)"
+      : "GMToolkitSettings.register: calling registerGroupTestSettings now")
+    if (!deferGroupTest) {
+      await registerGroupTestSettings()
+    }
 
     // Settings for Token Hud Extension
     registerSettingCompat("enableTokenHudExtensions", {
@@ -405,6 +411,14 @@ export async function prepareSettingsFormData (feature) {
  * Register settings for Group Test. Decoupled from GMToolkitSettings.register to avoid race condition while skill list is localized.
  */
 export async function registerGroupTestSettings () {
+  if (game.gmtoolkit._groupTestSettingsRegistered) {
+    GMToolkit.log(true, "registerGroupTestSettings: already registered (idempotent skip)")
+    return
+  }
+
+  const skillCountBefore = game.gmtoolkit.skills?.length ?? 0
+  GMToolkit.log(true, `registerGroupTestSettings: start, game.gmtoolkit.skills.length=${skillCountBefore}`)
+
   const registerSettingCompat = (key, data) => {
     game.settings.register(GMToolkit.MODULE_ID, key, data)
     for (const legacyId of GMToolkit.LEGACY_MODULE_IDS) {
@@ -416,6 +430,7 @@ export async function registerGroupTestSettings () {
     }
   }
   const skillList = await game.gmtoolkit.skills.reduce((skills, skill) => ({ ...skills, [`${game.i18n.localize(skill.name)}`]: `${game.i18n.localize(skill.name)}` }), {})
+  const skillChoiceCount = Object.keys(skillList).length
 
   // Settings for Group Tests application
   registerSettingCompat("quicktest1GroupTest", {
@@ -549,4 +564,10 @@ export async function registerGroupTestSettings () {
     config: false,
     default: []
   })
+
+  game.gmtoolkit._groupTestSettingsRegistered = true
+  const grouptestCount = Array.from(game.settings.settings.values())
+    .filter(s => s.namespace === GMToolkit.MODULE_ID && s.feature === "grouptest")
+    .length
+  GMToolkit.log(true, `registerGroupTestSettings: done, grouptest feature settings=${grouptestCount}, quicktest skill choice keys=${skillChoiceCount}`)
 }

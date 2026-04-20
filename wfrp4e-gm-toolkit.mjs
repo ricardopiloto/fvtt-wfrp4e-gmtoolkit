@@ -51,6 +51,8 @@ Hooks.once("init", function () {
       launch: DamageConsole
     },
     skills: [],
+    /** Set true after Group Test settings keys are registered (idempotent guard). */
+    _groupTestSettingsRegistered: false,
     settings: {
       advantage: GMToolkitAdvantageSettings,
       darkwhispers: GMToolkitDarkWhispersSettings,
@@ -69,16 +71,37 @@ Hooks.once("init", function () {
 /* -------------------------------------------- */
 
 Hooks.once("ready", async function () {
+  const babelePresent = Boolean(game.babele)
+  const babeleInitialized = Boolean(game.babele?.initialized)
+  GMToolkit.log(true, `ready: Babele present=${babelePresent}, initialized=${babeleInitialized}`)
+
   // Preload skills, used for Group Test settings registration
   if (!game.babele || game.babele.initialized) {
-    GMToolkit.log(false, "Building skills as Babele is not active or is initialized")
+    GMToolkit.log(true, "ready: compiling skills immediately (no Babele or Babele already initialized)")
     game.gmtoolkit.skills = await GMToolkitUtility.compileItems(["skill"])
   } else {
-    GMToolkit.log(false, "Deferring skill list build until Babele is initialized.")
+    GMToolkit.log(true, "ready: deferring skill list build until Babele is initialized")
   }
+
+  GMToolkit.log(true, `ready: game.gmtoolkit.skills.length after compile branch=${game.gmtoolkit.skills?.length ?? 0}`)
 
   // Register module settings
   await GMToolkitSettings.register()
+
+  /* Fallback: if babele.ready never runs (hosting / load order), register Group Test settings after a delay */
+  const FALLBACK_MS = 20000
+  window.setTimeout(async () => {
+    if (game.gmtoolkit._groupTestSettingsRegistered) return
+    GMToolkit.log(true, `Group test settings still unregistered after ${FALLBACK_MS}ms; attempting fallback compile + register`)
+    try {
+      if (!game.gmtoolkit.skills?.length) {
+        game.gmtoolkit.skills = await GMToolkitUtility.compileItems(["skill"])
+      }
+      await registerGroupTestSettings()
+    } catch (err) {
+      console.error(`${GMToolkit.MODULE_ID} | Group test settings fallback failed`, err)
+    }
+  }, FALLBACK_MS)
 
   GMToolkit.log(true, `${GMToolkit.MODULE_NAME} is ready.`)
 
@@ -140,11 +163,15 @@ Hooks.on("renderTokenHUD", (app, html, data) => {
 
 // If Babele is installed, wait until it completed initialisation and then compile localized skills list used for Group Tests
 Hooks.once("babele.ready", async function () {
-  // Preload skills, used for Group Test settings registration
+  GMToolkit.log(true, "babele.ready hook fired")
   if (!game.babele || game.babele.initialized) {
-    console.log("Building skills now Babele is ready")
-    game.gmtoolkit.skills = await GMToolkitUtility.compileItems(["skill"])
-    registerGroupTestSettings()
+    if (!game.gmtoolkit.skills?.length) {
+      game.gmtoolkit.skills = await GMToolkitUtility.compileItems(["skill"])
+    }
+    GMToolkit.log(true, `babele.ready: skills.length=${game.gmtoolkit.skills?.length ?? 0}, calling registerGroupTestSettings`)
+    await registerGroupTestSettings()
+  } else {
+    GMToolkit.log(true, "babele.ready: Babele present but not initialized — skipping register (unexpected)")
   }
 })
 
