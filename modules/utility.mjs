@@ -155,7 +155,7 @@ function getMaxStatus (actor, status) {
 export function getSession () {
   let date = ""
   let time = ""
-  const id = game.settings.get("wfrp4e-gm-toolkit", "sessionID")
+  const id = GMToolkit.getSettingCompat("sessionID")
   if (game.world.nextSession != null) {
     date = game.world.nextSession?.split("T")[0]
     time = game.world.nextSession?.split("T")[1]
@@ -196,13 +196,7 @@ export function inActiveCombat (character, notification = true) {
 export async function refreshToolkitContent (documentType) {
 
   let toolkitContent = []
-  const module_name = game.gmtoolkit.module.MODULE_NAME
-  const gmtFolders = await game.folders.tree.entries
-    .filter(f => (f.name === module_name
-      || f.ancestors[0]?.name === module_name
-      || f.ancestors[1]?.name === module_name))
-    .filter(f => f.type === documentType)
-    .map(g => g.id)
+  const gmtFolders = getGMToolkitFolderIds(documentType)
 
   switch (documentType) {
     case "Macro":
@@ -222,7 +216,9 @@ export async function refreshToolkitContent (documentType) {
         .map(d => d.id)
       await RollTable.implementation.deleteDocuments(gmtTables)
       await Folder.implementation.deleteDocuments(gmtFolders)
-      await Folder.deleteDocuments(game.folders.filter(f => f.name === GMToolkit.MODULE_NAME && f.type === "RollTable").map(f => f.id))
+      await Folder.deleteDocuments(game.folders.filter(f =>
+        f.type === "RollTable" && (f.name === GMToolkit.MODULE_NAME || f.name === GMToolkit.MODULE_NAME_FULL)
+      ).map(f => f.id))
       // Import tables from compendium
       toolkitContent = await game.packs.get(`${GMToolkit.MODULE_ID}.gm-toolkit-tables`).importAll({
         folderName: GMToolkit.MODULE_NAME,
@@ -233,6 +229,58 @@ export async function refreshToolkitContent (documentType) {
 
   GMToolkit.log(false, toolkitContent)
 
+}
+
+export function getGMToolkitFolderIds (folderType) {
+  const moduleName = game.gmtoolkit?.module?.MODULE_NAME ?? GMToolkit.MODULE_NAME
+  const moduleNameFull = game.gmtoolkit?.module?.MODULE_NAME_FULL ?? GMToolkit.MODULE_NAME_FULL
+  const nameMatches = (n) => n === moduleName || n === moduleNameFull
+
+  try {
+    const entries = game.folders?.tree?.entries
+    if (Array.isArray(entries)) {
+      const ids = entries
+        .filter(f => f?.type === folderType)
+        .filter(f => nameMatches(f?.name) || f?.ancestors?.some?.(a => nameMatches(a?.name)))
+        .map(f => f.id)
+      GMToolkit.log(false, "getGMToolkitFolderIds", {
+        folderType,
+        moduleName,
+        moduleNameFull,
+        usedTreeEntries: true,
+        treeEntryCount: entries.length,
+        matchedFolderCount: ids.length,
+        matchedFolderIdSample: ids.slice(0, 10)
+      })
+      return ids
+    }
+  } catch (_) {
+    // Fall through to Folder-document fallback.
+  }
+
+  const isInToolkitTree = (folder) => {
+    let cur = folder
+    while (cur) {
+      if (nameMatches(cur.name)) return true
+      cur = cur.folder
+    }
+    return false
+  }
+
+  const ids = game.folders
+    .filter(f => f?.type === folderType)
+    .filter(isInToolkitTree)
+    .map(f => f.id)
+  GMToolkit.log(false, "getGMToolkitFolderIds", {
+    folderType,
+    moduleName,
+    moduleNameFull,
+    usedTreeEntries: false,
+    folderCount: game.folders?.size ?? game.folders?.length,
+    matchedFolderCount: ids.length,
+    matchedFolderIdSample: ids.slice(0, 10)
+  })
+  return ids
 }
 
 /**

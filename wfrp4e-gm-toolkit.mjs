@@ -86,7 +86,7 @@ Hooks.once("ready", async function () {
   const spectators = GMToolkitUtility.getGroup("spectators").map(i => ` ${i.name}`)
   if (spectators.length > 0) {
     GMToolkit.log(true, `Spectators: ${spectators}`)
-    if (!game.settings.get("wfrp4e-gm-toolkit", "suppressSpectatorNotice")) {
+    if (!GMToolkit.getSettingCompat("suppressSpectatorNotice")) {
       ui.notifications.error(`${game.i18n.format("GMTOOLKIT.Message.Spectators", { spectators })}`, { permanent: true, console: false })
     }
   }
@@ -120,7 +120,7 @@ Hooks.once("devModeReady", ({ registerPackageDebugFlag }) => {
 // Disable movement on holding scene (preUpdateToken: TokenDocument, diff, operation, userId)
 Hooks.on("preUpdateToken", (tokenDocument, change) => {
   GMToolkit.log(false, `${tokenDocument.x} -> ${change?.x}, ${tokenDocument.y} -> ${change?.y}`)
-  if (!game.user.isGM && game.canvas.scene.name === game.settings.get("wfrp4e-gm-toolkit", "holdingScene")) {
+  if (!game.user.isGM && game.canvas.scene.name === GMToolkit.getSettingCompat("holdingScene")) {
     if (change?.x) {change.x = tokenDocument.x}
     if (change?.y) {change.y = tokenDocument.y}
   }
@@ -134,7 +134,7 @@ Hooks.on("renderTokenHUD", (app, html, data) => {
   }
   const statusEffects = $html.find(".status-effects")[0]
   if (statusEffects) {
-    statusEffects.style.background = `${game.settings.get("wfrp4e-gm-toolkit", "tokenHudStatusEffectsBackground")}`
+    statusEffects.style.background = `${GMToolkit.getSettingCompat("tokenHudStatusEffectsBackground")}`
   }
 })
 

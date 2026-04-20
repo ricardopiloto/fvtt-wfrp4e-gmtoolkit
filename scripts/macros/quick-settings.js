@@ -43,7 +43,7 @@ class QuickMenu extends HandlebarsApplicationMixin(ApplicationV2) {
 
   static PARTS = {
     form: {
-      template: "/modules/wfrp4e-gm-toolkit/templates/quickmenu.hbs"
+      template: `/${game.gmtoolkit.module.modulePath("templates/quickmenu.hbs")}`
     }
   }
 
@@ -96,7 +96,7 @@ class QuickMenu extends HandlebarsApplicationMixin(ApplicationV2) {
           quickMenu.push({
             name: name,
             label: label,
-            // icon: "modules/wfrp4e-gm-toolkit/assets/icons/quick-settings.svg",
+            // icon: "modules/wfrp4e-gm-toolkit-jiban/assets/icons/quick-settings.svg",
             action: "setting"
           })
         }

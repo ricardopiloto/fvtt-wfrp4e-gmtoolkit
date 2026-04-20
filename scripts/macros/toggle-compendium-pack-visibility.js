@@ -1,5 +1,5 @@
 let packsource = [] // Leave empty to include compendium packs from all sources
-// let packsouce = ["wfrp4e-core", "wfrp4e-gm-toolkit", "wfrp4e-eis-maps"] // Explicitly specify pack sources to only toggle their visiblity (eg, only show/hide packs from the wfrp4e-core module)
+// let packsouce = ["wfrp4e-core", "wfrp4e-gm-toolkit-jiban", "wfrp4e-eis-maps"] // Explicitly specify pack sources to only toggle their visiblity (eg, only show/hide packs from the wfrp4e-core module)
 
 let packtypes = [] // Leave empty to include all types of compendium pack
 // let packtypes = ["Actor","Item", "JournalEntry", "Scene", "Macro", "Cards"] // Explicitly specify types of pack to only toggle their visiblity (eg, only show/hide Actor and Item entries)

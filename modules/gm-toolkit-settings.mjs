@@ -10,6 +10,16 @@ import { strip } from "./utility.mjs"
 export class GMToolkitSettings {
 
   static register () {
+    const registerSettingCompat = (key, data) => {
+      game.settings.register(GMToolkit.MODULE_ID, key, data)
+      for (const legacyId of GMToolkit.LEGACY_MODULE_IDS) {
+        game.settings.register(legacyId, key, {
+          ...data,
+          config: false,
+          onChange: undefined
+        })
+      }
+    }
 
     // Menu for Advantage handling
     game.settings.registerMenu(GMToolkit.MODULE_ID, "menuAdvantage", {
@@ -21,7 +31,7 @@ export class GMToolkitSettings {
       restricted: true
     })
     // Automate advantage for winning or losing an opposed test
-    game.settings.register(GMToolkit.MODULE_ID, "automateOpposedTestAdvantage", {
+    registerSettingCompat("automateOpposedTestAdvantage", {
       name: "GMTOOLKIT.Settings.Advantage.Automate.OpposedTest.name",
       hint: "GMTOOLKIT.Settings.Advantage.Automate.OpposedTest.hint",
       scope: "world",
@@ -32,7 +42,7 @@ export class GMToolkitSettings {
       feature: "advantage"
     })
     // Automate advantage for outmanouvring and losing wounds from unopposed tests
-    game.settings.register(GMToolkit.MODULE_ID, "automateDamageAdvantage", {
+    registerSettingCompat("automateDamageAdvantage", {
       name: "GMTOOLKIT.Settings.Advantage.Automate.UnopposedDamage.name",
       hint: "GMTOOLKIT.Settings.Advantage.Automate.UnopposedDamage.hint",
       scope: "world",
@@ -43,7 +53,7 @@ export class GMToolkitSettings {
       feature: "advantage"
     })
     // Clear advantage when suffering a condition
-    game.settings.register(GMToolkit.MODULE_ID, "automateConditionAdvantage", {
+    registerSettingCompat("automateConditionAdvantage", {
       name: "GMTOOLKIT.Settings.Advantage.Automate.SufferCondition.name",
       hint: "GMTOOLKIT.Settings.Advantage.Automate.SufferCondition.hint",
       scope: "world",
@@ -54,7 +64,7 @@ export class GMToolkitSettings {
       feature: "advantage"
     })
     // Prompt to lose advantage when not gained in a round
-    game.settings.register(GMToolkit.MODULE_ID, "promptMomentumLoss", {
+    registerSettingCompat("promptMomentumLoss", {
       name: "GMTOOLKIT.Settings.Advantage.Automate.LoseMomentum.name",
       hint: "GMTOOLKIT.Settings.Advantage.Automate.LoseMomentum.hint",
       scope: "world",
@@ -65,7 +75,7 @@ export class GMToolkitSettings {
       feature: "advantage"
     })
     // Clear Advantage when token is added to combat tracker
-    game.settings.register(GMToolkit.MODULE_ID, "clearAdvantageCombatJoin", {
+    registerSettingCompat("clearAdvantageCombatJoin", {
       name: "GMTOOLKIT.Settings.Advantage.Automate.CombatJoin.name",
       hint: "GMTOOLKIT.Settings.Advantage.Automate.CombatJoin.hint",
       scope: "world",
@@ -76,7 +86,7 @@ export class GMToolkitSettings {
       feature: "advantage"
     })
     // Clear Advantage when token is removed from combat tracker
-    game.settings.register(GMToolkit.MODULE_ID, "clearAdvantageCombatLeave", {
+    registerSettingCompat("clearAdvantageCombatLeave", {
       name: "GMTOOLKIT.Settings.Advantage.Automate.CombatLeave.name",
       hint: "GMTOOLKIT.Settings.Advantage.Automate.CombatLeave.hint",
       scope: "world",
@@ -87,7 +97,7 @@ export class GMToolkitSettings {
       feature: "advantage"
     })
     // Automate group advantage numerical superiority
-    game.settings.register(GMToolkit.MODULE_ID, "automateGroupAdvantageNumericalSuperiority", {
+    registerSettingCompat("automateGroupAdvantageNumericalSuperiority", {
       name: "GMTOOLKIT.Settings.Advantage.Automate.GroupNumericalSuperiority.name",
       hint: "GMTOOLKIT.Settings.Advantage.Automate.GroupNumericalSuperiority.hint",
       scope: "world",
@@ -97,7 +107,7 @@ export class GMToolkitSettings {
       onChange: foundry.utils.debouncedReload,
       feature: "advantage"
     })
-    game.settings.register(GMToolkit.MODULE_ID, "persistAdvantageNotifications", {
+    registerSettingCompat("persistAdvantageNotifications", {
       name: "GMTOOLKIT.Settings.Advantage.PersistNotices.name",
       hint: "GMTOOLKIT.Settings.Advantage.PersistNotices.hint",
       scope: "world",
@@ -118,7 +128,7 @@ export class GMToolkitSettings {
       restricted: true
     })
     // Settings for Session Management
-    game.settings.register(GMToolkit.MODULE_ID, "sessionID", {
+    registerSettingCompat("sessionID", {
       name: "GMTOOLKIT.Settings.SessionTurnover.SessionID.name",
       hint: "GMTOOLKIT.Settings.SessionTurnover.SessionID.hint",
       scope: "world",
@@ -127,7 +137,7 @@ export class GMToolkitSettings {
       type: String,
       feature: "session"
     })
-    game.settings.register(GMToolkit.MODULE_ID, "defaultPartySessionTurnover", {
+    registerSettingCompat("defaultPartySessionTurnover", {
       name: "GMTOOLKIT.Settings.SessionTurnover.DefaultParty.name",
       hint: "GMTOOLKIT.Settings.SessionTurnover.DefaultParty.hint",
       scope: "world",
@@ -140,7 +150,7 @@ export class GMToolkitSettings {
       },
       feature: "session"
     })
-    game.settings.register(GMToolkit.MODULE_ID, "addXPPrompt", {
+    registerSettingCompat("addXPPrompt", {
       name: "GMTOOLKIT.Settings.AddXP.Prompt.name",
       hint: "GMTOOLKIT.Settings.AddXP.Prompt.hint",
       scope: "world",
@@ -149,7 +159,7 @@ export class GMToolkitSettings {
       type: Boolean,
       feature: "session"
     })
-    game.settings.register(GMToolkit.MODULE_ID, "addXPDefaultAmount", {
+    registerSettingCompat("addXPDefaultAmount", {
       name: "GMTOOLKIT.Settings.AddXP.Default.name",
       hint: "GMTOOLKIT.Settings.AddXP.Default.hint",
       scope: "world",
@@ -163,7 +173,7 @@ export class GMToolkitSettings {
       },
       feature: "session"
     })
-    game.settings.register(GMToolkit.MODULE_ID, "addXPDefaultReason", {
+    registerSettingCompat("addXPDefaultReason", {
       name: "GMTOOLKIT.Settings.AddXP.Reason.name",
       hint: "GMTOOLKIT.Settings.AddXP.Reason.hint",
       scope: "world",
@@ -172,7 +182,7 @@ export class GMToolkitSettings {
       type: String,
       feature: "session"
     })
-    game.settings.register(GMToolkit.MODULE_ID, "holdingScene", {
+    registerSettingCompat("holdingScene", {
       name: "GMTOOLKIT.Settings.SessionTurnover.HoldingScene.name",
       hint: "GMTOOLKIT.Settings.SessionTurnover.HoldingScene.hint",
       scope: "world",
@@ -181,7 +191,7 @@ export class GMToolkitSettings {
       type: String,
       feature: "session"
     })
-    game.settings.register(GMToolkit.MODULE_ID, "exportChat", {
+    registerSettingCompat("exportChat", {
       name: "GMTOOLKIT.Settings.SessionEnd.ExportChat.name",
       hint: "GMTOOLKIT.Settings.SessionEnd.ExportChat.hint",
       scope: "world",
@@ -190,7 +200,7 @@ export class GMToolkitSettings {
       type: Boolean,
       feature: "session"
     })
-    game.settings.register(GMToolkit.MODULE_ID, "scenePullActivate", {
+    registerSettingCompat("scenePullActivate", {
       name: "GMTOOLKIT.Settings.ScenePullActivate.name",
       hint: "GMTOOLKIT.Settings.ScenePullActivate.hint",
       scope: "world",
@@ -216,7 +226,7 @@ export class GMToolkitSettings {
       restricted: true
     })
     // Vision Settings for Set Token Vision and Light Macro
-    game.settings.register(GMToolkit.MODULE_ID, "rangeNormalSight", {
+    registerSettingCompat("rangeNormalSight", {
       name: "GMTOOLKIT.Settings.Vision.NormalSight.name",
       hint: "GMTOOLKIT.Settings.Vision.NormalSight.hint",
       scope: "world",
@@ -226,7 +236,7 @@ export class GMToolkitSettings {
       step: "any",
       feature: "vision"
     })
-    game.settings.register(GMToolkit.MODULE_ID, "rangeDarkVision", {
+    registerSettingCompat("rangeDarkVision", {
       name: "GMTOOLKIT.Settings.Vision.DarkVision.name",
       hint: "GMTOOLKIT.Settings.Vision.DarkVision.hint",
       scope: "world",
@@ -236,7 +246,7 @@ export class GMToolkitSettings {
       step: "any",
       feature: "vision"
     })
-    game.settings.register(GMToolkit.MODULE_ID, "overrideNightVision", {
+    registerSettingCompat("overrideNightVision", {
       name: "GMTOOLKIT.Settings.Vision.OverrideNightVision.name",
       hint: "GMTOOLKIT.Settings.Vision.OverrideNightVision.hint",
       scope: "world",
@@ -245,7 +255,7 @@ export class GMToolkitSettings {
       type: Boolean,
       feature: "vision"
     })
-    game.settings.register(GMToolkit.MODULE_ID, "overrideDarkVision", {
+    registerSettingCompat("overrideDarkVision", {
       name: "GMTOOLKIT.Settings.Vision.OverrideDarkVision.name",
       hint: "GMTOOLKIT.Settings.Vision.OverrideDarkVision.hint",
       scope: "world",
@@ -266,7 +276,7 @@ export class GMToolkitSettings {
       restricted: true
     })
     // Settings for Send Dark Whispers Macro
-    game.settings.register(GMToolkit.MODULE_ID, "defaultGroupDarkWhispers", {
+    registerSettingCompat("defaultGroupDarkWhispers", {
       name: "GMTOOLKIT.Settings.DarkWhispers.DefaultGroup.name",
       hint: "GMTOOLKIT.Settings.DarkWhispers.DefaultGroup.hint",
       scope: "world",
@@ -279,7 +289,7 @@ export class GMToolkitSettings {
       },
       feature: "darkwhispers"
     })
-    game.settings.register(GMToolkit.MODULE_ID, "messageDarkWhispers", {
+    registerSettingCompat("messageDarkWhispers", {
       name: "GMTOOLKIT.Settings.DarkWhispers.message.name",
       hint: "GMTOOLKIT.Settings.DarkWhispers.message.hint",
       scope: "world",
@@ -305,7 +315,7 @@ export class GMToolkitSettings {
     if (!game.babele || game.babele.initialized) registerGroupTestSettings()
 
     // Settings for Token Hud Extension
-    game.settings.register(GMToolkit.MODULE_ID, "enableTokenHudExtensions", {
+    registerSettingCompat("enableTokenHudExtensions", {
       name: "GMTOOLKIT.Settings.TokenHudExtensions.Enabled.name",
       hint: "GMTOOLKIT.Settings.TokenHudExtensions.Enabled.hint",
       scope: "client",
@@ -314,10 +324,18 @@ export class GMToolkitSettings {
       type: Boolean,
       feature: "tokenhud"
     })
-    if (game.settings.get("wfrp4e-gm-toolkit", "enableTokenHudExtensions")) game.settings.set("wfrp4e-gm-toolkit", "enableTokenHudExtensions", false)
+    for (const legacyId of GMToolkit.LEGACY_MODULE_IDS) {
+      const legacyEnabled = game.settings.get(legacyId, "enableTokenHudExtensions")
+      if (legacyEnabled && !game.settings.get(GMToolkit.MODULE_ID, "enableTokenHudExtensions")) {
+        game.settings.set(GMToolkit.MODULE_ID, "enableTokenHudExtensions", true)
+      }
+      if (legacyEnabled) {
+        game.settings.set(legacyId, "enableTokenHudExtensions", false)
+      }
+    }
 
     // Settings for Token Hud Extension
-    game.settings.register(GMToolkit.MODULE_ID, "tokenHudStatusEffectsBackground", {
+    registerSettingCompat("tokenHudStatusEffectsBackground", {
       name: "GMTOOLKIT.Settings.TokenHudExtensions.StatusEffectsBackground.name",
       hint: "GMTOOLKIT.Settings.TokenHudExtensions.StatusEffectsBackground.hint",
       scope: "client",
@@ -328,7 +346,7 @@ export class GMToolkitSettings {
     })
 
     // Settings for suppressing Spectator notification
-    game.settings.register(GMToolkit.MODULE_ID, "suppressSpectatorNotice", {
+    registerSettingCompat("suppressSpectatorNotice", {
       name: "GMTOOLKIT.Settings.Spectators.name",
       hint: "GMTOOLKIT.Settings.Spectators.hint",
       scope: "world",
@@ -359,9 +377,10 @@ export class GMToolkitSettings {
  * @returns {Array}  Array of settings with additional data for UI processing
  */
 export async function prepareSettingsFormData (feature) {
-  settings = Array.from(game.settings.settings)
-    .filter(s => s[1].feature === feature)
-    .map(i => i[1])
+  const settings = Array.from(game.settings.settings)
+    .filter(([, setting]) => setting.feature === feature && setting.namespace === GMToolkit.MODULE_ID)
+    .map(([, setting]) => setting)
+
   settings.forEach(s => {
     if (s.type === Boolean) {
       s.boolean = true
@@ -371,7 +390,7 @@ export async function prepareSettingsFormData (feature) {
       s.isRange = true
       s.inputType = "number"
     }
-    if (s.type === Number & !s.range) {
+    if (s.type === Number && !s.range) {
       s.isNumber = true
       s.inputType = "number"
       s.step = s.step ?? 1
@@ -386,10 +405,20 @@ export async function prepareSettingsFormData (feature) {
  * Register settings for Group Test. Decoupled from GMToolkitSettings.register to avoid race condition while skill list is localized.
  */
 export async function registerGroupTestSettings () {
+  const registerSettingCompat = (key, data) => {
+    game.settings.register(GMToolkit.MODULE_ID, key, data)
+    for (const legacyId of GMToolkit.LEGACY_MODULE_IDS) {
+      game.settings.register(legacyId, key, {
+        ...data,
+        config: false,
+        onChange: undefined
+      })
+    }
+  }
   const skillList = await game.gmtoolkit.skills.reduce((skills, skill) => ({ ...skills, [`${game.i18n.localize(skill.name)}`]: `${game.i18n.localize(skill.name)}` }), {})
 
   // Settings for Group Tests application
-  game.settings.register(GMToolkit.MODULE_ID, "quicktest1GroupTest", {
+  registerSettingCompat("quicktest1GroupTest", {
     name: "GMTOOLKIT.Settings.GroupTest.quicktest1.name",
     hint: "GMTOOLKIT.Settings.GroupTest.quicktest.hint",
     scope: "world",
@@ -398,7 +427,7 @@ export async function registerGroupTestSettings () {
     choices: skillList,
     feature: "grouptest"
   })
-  game.settings.register(GMToolkit.MODULE_ID, "quicktest2GroupTest", {
+  registerSettingCompat("quicktest2GroupTest", {
     name: "GMTOOLKIT.Settings.GroupTest.quicktest2.name",
     hint: "GMTOOLKIT.Settings.GroupTest.quicktest.hint",
     scope: "world",
@@ -408,7 +437,7 @@ export async function registerGroupTestSettings () {
     choices: skillList,
     feature: "grouptest"
   })
-  game.settings.register(GMToolkit.MODULE_ID, "quicktest3GroupTest", {
+  registerSettingCompat("quicktest3GroupTest", {
     name: "GMTOOLKIT.Settings.GroupTest.quicktest3.name",
     hint: "GMTOOLKIT.Settings.GroupTest.quicktest.hint",
     scope: "world",
@@ -418,7 +447,7 @@ export async function registerGroupTestSettings () {
     choices: skillList,
     feature: "grouptest"
   })
-  game.settings.register(GMToolkit.MODULE_ID, "quicktest4GroupTest", {
+  registerSettingCompat("quicktest4GroupTest", {
     name: "GMTOOLKIT.Settings.GroupTest.quicktest4.name",
     hint: "GMTOOLKIT.Settings.GroupTest.quicktest.hint",
     scope: "world",
@@ -428,7 +457,7 @@ export async function registerGroupTestSettings () {
     choices: skillList,
     feature: "grouptest"
   })
-  game.settings.register(GMToolkit.MODULE_ID, "defaultSkillGroupTest", {
+  registerSettingCompat("defaultSkillGroupTest", {
     name: "GMTOOLKIT.Settings.GroupTest.defaultSkill.name",
     hint: "GMTOOLKIT.Settings.GroupTest.defaultSkill.hint",
     scope: "world",
@@ -437,7 +466,7 @@ export async function registerGroupTestSettings () {
     type: String,
     feature: "grouptest"
   })
-  game.settings.register(GMToolkit.MODULE_ID, "bypassTestDialogGroupTest", {
+  registerSettingCompat("bypassTestDialogGroupTest", {
     name: "GMTOOLKIT.Settings.GroupTest.bypassTestDialog.name",
     hint: "GMTOOLKIT.Settings.GroupTest.bypassTestDialog.hint",
     scope: "world",
@@ -446,7 +475,7 @@ export async function registerGroupTestSettings () {
     type: Boolean,
     feature: "grouptest"
   })
-  game.settings.register(GMToolkit.MODULE_ID, "defaultDifficultyGroupTest", {
+  registerSettingCompat("defaultDifficultyGroupTest", {
     name: "GMTOOLKIT.Settings.GroupTest.defaultDifficulty.name",
     hint: "GMTOOLKIT.Settings.GroupTest.defaultDifficulty.hint",
     scope: "world",
@@ -456,7 +485,7 @@ export async function registerGroupTestSettings () {
     default: "average",
     feature: "grouptest"
   })
-  game.settings.register(GMToolkit.MODULE_ID, "defaultRollModeGroupTest", {
+  registerSettingCompat("defaultRollModeGroupTest", {
     name: "GMTOOLKIT.Settings.GroupTest.defaultRollMode.name",
     hint: "GMTOOLKIT.Settings.GroupTest.defaultRollMode.hint",
     scope: "world",
@@ -466,7 +495,7 @@ export async function registerGroupTestSettings () {
     default: "blindroll",
     feature: "grouptest"
   })
-  game.settings.register(GMToolkit.MODULE_ID, "defaultTestModifierGroupTest", {
+  registerSettingCompat("defaultTestModifierGroupTest", {
     name: "GMTOOLKIT.Settings.GroupTest.defaultTestModifier.name",
     hint: "GMTOOLKIT.Settings.GroupTest.defaultTestModifier.hint",
     scope: "world",
@@ -475,7 +504,7 @@ export async function registerGroupTestSettings () {
     type: Number,
     feature: "grouptest"
   })
-  game.settings.register(GMToolkit.MODULE_ID, "defaultPartyGroupTest", {
+  registerSettingCompat("defaultPartyGroupTest", {
     name: "GMTOOLKIT.Settings.GroupTest.defaultParty.name",
     hint: "GMTOOLKIT.Settings.GroupTest.defaultParty.hint",
     scope: "world",
@@ -488,7 +517,7 @@ export async function registerGroupTestSettings () {
     },
     feature: "grouptest"
   })
-  game.settings.register(GMToolkit.MODULE_ID, "fallbackAdvancedSkills", {
+  registerSettingCompat("fallbackAdvancedSkills", {
     name: "GMTOOLKIT.Settings.MakeSecretGroupTests.FallbackAdvanced.name",
     hint: "GMTOOLKIT.Settings.MakeSecretGroupTests.FallbackAdvanced.hint",
     scope: "world",
@@ -497,7 +526,7 @@ export async function registerGroupTestSettings () {
     type: Boolean,
     feature: "grouptest"
   })
-  game.settings.register(GMToolkit.MODULE_ID, "fallbackAdjustDifficulty", {
+  registerSettingCompat("fallbackAdjustDifficulty", {
     name: "GMTOOLKIT.Settings.GroupTest.FallbackAdjustDifficulty.name",
     hint: "GMTOOLKIT.Settings.GroupTest.FallbackAdjustDifficulty.hint",
     scope: "world",
@@ -506,7 +535,7 @@ export async function registerGroupTestSettings () {
     type: Number,
     feature: "grouptest"
   })
-  game.settings.register(GMToolkit.MODULE_ID, "summariseResultsThresholdGroupTest", {
+  registerSettingCompat("summariseResultsThresholdGroupTest", {
     name: "GMTOOLKIT.Settings.GroupTest.SummariseResultsThresholdGroupTest.name",
     hint: "GMTOOLKIT.Settings.GroupTest.SummariseResultsThresholdGroupTest.hint",
     scope: "world",
@@ -515,7 +544,7 @@ export async function registerGroupTestSettings () {
     type: Number,
     feature: "grouptest"
   })
-  game.settings.register(GMToolkit.MODULE_ID, "aggregateResultGroupTest", {
+  registerSettingCompat("aggregateResultGroupTest", {
     scope: "world",
     config: false,
     default: []

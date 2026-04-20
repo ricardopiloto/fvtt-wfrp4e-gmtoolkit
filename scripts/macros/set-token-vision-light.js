@@ -292,11 +292,11 @@ async function applyTokenChanges (updates) {
         break
       case "darkVision":
         if (token.actor.has(game.i18n.localize("NAME.DarkVision", "trait"))) {
-          sightRange = Number(game.settings.get("wfrp4e-gm-toolkit", "rangeDarkVision"))
+          sightRange = Number(game.gmtoolkit.module.getSettingCompat("rangeDarkVision"))
         } else {
-          game.settings.get("wfrp4e-gm-toolkit", "overrideDarkVision")
-            ? sightRange = Number(game.settings.get("wfrp4e-gm-toolkit", "rangeDarkVision"))
-            : sightRange = Number(game.settings.get("wfrp4e-gm-toolkit", "rangeNormalSight"))
+          game.gmtoolkit.module.getSettingCompat("overrideDarkVision")
+            ? sightRange = Number(game.gmtoolkit.module.getSettingCompat("rangeDarkVision"))
+            : sightRange = Number(game.gmtoolkit.module.getSettingCompat("rangeNormalSight"))
         }
         sightBrightness = sightRange / 2
         break
@@ -310,7 +310,7 @@ async function applyTokenChanges (updates) {
           | game.scenes.viewed.environment.globalLight.enabled
         ) {
           if (actorNightVision === undefined) {
-            game.settings.get("wfrp4e-gm-toolkit", "overrideNightVision")
+            game.gmtoolkit.module.getSettingCompat("overrideNightVision")
               ? advNightVision = 1
               : advNightVision = 0
           } else {
@@ -325,12 +325,12 @@ async function applyTokenChanges (updates) {
           }
           // Determine range of night vision
           if (advNightVision === 0) {
-            sightRange = Number(game.settings.get("wfrp4e-gm-toolkit", "rangeNormalSight"))
+            sightRange = Number(game.gmtoolkit.module.getSettingCompat("rangeNormalSight"))
             break
           }
           sightRange = Math.max(
             (20 * advNightVision) + lightDim,
-            Number(game.settings.get("wfrp4e-gm-toolkit", "rangeNormalSight"))
+            Number(game.gmtoolkit.module.getSettingCompat("rangeNormalSight"))
           )
           sightColor = null
           visionMode = "basic"
@@ -339,7 +339,7 @@ async function applyTokenChanges (updates) {
         console.log(`Night Vision Advances ${advNightVision}`)
         break
       case "normalVision":
-        sightRange = Number(game.settings.get("wfrp4e-gm-toolkit", "rangeNormalSight"))
+        sightRange = Number(game.gmtoolkit.module.getSettingCompat("rangeNormalSight"))
         sightBrightness = 0
         sightColor = null
         visionMode = "basic"

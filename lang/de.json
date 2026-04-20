@@ -24,8 +24,8 @@
     "GMTOOLKIT.Settings.Advantage.Automate.CombatJoin.hint" : "Entferne den Vorteil von den Tokens, wenn sie zur Kampfübersicht hinzugefügt werden (wenn du keinen Gruppenvorteil verwendest), nicht wenn eine leere Begegnung erstellt oder ein Kampf begonnen wird.",
     "GMTOOLKIT.Settings.Advantage.Automate.CombatLeave.name" : "Verlassen des Kampfes",
     "GMTOOLKIT.Settings.Advantage.Automate.CombatLeave.hint" : "Entferne Vorteile von Token, wenn sie aus der Kampfübersicht entfernt werden, anstatt wenn der Kampf beendet wird.",
-    "GMTOOLKIT.Settings.Advantage.Automate.GroupNumericalSuperiority.name" : "Group Advantage: numerical superiority",
-    "GMTOOLKIT.Settings.Advantage.Automate.GroupNumericalSuperiority.hint" : "When WFRP4e Group Advantage is enabled, at the end of each combat round (when the round number advances) compare combatants by token disposition: Hostile versus Friendly, ignoring Neutral. If one side has more tokens, increase that side's group pool by 1 and decrease the other by 1 (respecting minimum 0 and the system's maximum Advantage).",
+    "GMTOOLKIT.Settings.Advantage.Automate.GroupNumericalSuperiority.name" : "Vorteilsverlust",
+    "GMTOOLKIT.Settings.Advantage.Automate.GroupNumericalSuperiority.hint" : "Wenn WFRP4e-Gruppenvorteil aktiviert ist, vergleicht am Ende jeder Kampfrunde (wenn die Rundenzahl steigt) die Anzahl der Kämpfer (Friendly x Hostile) und erhöht/verringert den Vorteil gemäß „Vorteilsverlust“ aus Up in Arms (Talent Drilled wird berücksichtigt).",
 
     "GMTOOLKIT.Settings.TokenHudExtensions.Enabled.name" : "Token-Hud-Erweiterungen einschalten",
     "GMTOOLKIT.Settings.TokenHudExtensions.Enabled.hint" : "Tooltips und Interaktionen für Schlüsselattribute und -fertigkeiten sind über das Hud der kontrollierten Token verfügbar. Standardmäßig aktiviert.",
@@ -41,6 +41,7 @@
   
     "GMTOOLKIT.Dialog.Apply": "Anwenden",    
     "GMTOOLKIT.Dialog.Cancel" : "Abbrechen",
+    "GMTOOLKIT.Dialog.Maintenance.Empty" : "Leer",
     "GMTOOLKIT.Dialog.None" : "None",
     "GMTOOLKIT.Dialog.NotAssigned" : "Not Assigned",
     "GMTOOLKIT.Dialog.ChooseTargets" : "Ziele auswählen",

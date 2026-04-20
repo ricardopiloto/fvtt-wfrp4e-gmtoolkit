@@ -192,8 +192,16 @@ export default class Advantage {
    * @param {boolean} startOfRound  :   Unset sorAdvantage flag at end of round
    **/
   static unsetFlags (advantaged, startOfRound = false) {
-    advantaged.filter(c => c.unsetFlag("wfrp4e-gm-toolkit", "advantage"))
-    if (startOfRound) advantaged.filter(c => c.unsetFlag("wfrp4e-gm-toolkit", "sorAdvantage"))
+    advantaged.filter(c => c.unsetFlag(GMToolkit.MODULE_ID, "advantage"))
+    for (const legacyId of GMToolkit.LEGACY_MODULE_IDS) {
+      advantaged.filter(c => c.unsetFlag(legacyId, "advantage"))
+    }
+    if (startOfRound) {
+      advantaged.filter(c => c.unsetFlag(GMToolkit.MODULE_ID, "sorAdvantage"))
+      for (const legacyId of GMToolkit.LEGACY_MODULE_IDS) {
+        advantaged.filter(c => c.unsetFlag(legacyId, "sorAdvantage"))
+      }
+    }
     GMToolkit.log(false, "Advantage Flags: Unset.")
   }
 
@@ -206,7 +214,7 @@ export default class Advantage {
     const combatantAdvantage = []
 
     combat.combatants.forEach(combatant => {
-      combatantAdvantage.startOfRound = combatant.getFlag("wfrp4e-gm-toolkit", "sorAdvantage")
+      combatantAdvantage.startOfRound = GMToolkit.getFlagCompat(combatant, "sorAdvantage")
       // eslint-disable-next-line max-len
       combatantAdvantage.endOfRound = combatant.token.actor.system.status?.advantage?.value
       const checkToLoseMomentum
@@ -254,7 +262,7 @@ export default class Advantage {
       notgained: checkNotGained,
       none: noAdvantage
     }
-    const dialogContent = await renderTemplate("modules/wfrp4e-gm-toolkit/templates/gm-toolkit-advantage-momentum.html", templateData)
+    const dialogContent = await renderTemplate(GMToolkit.modulePath("templates/gm-toolkit-advantage-momentum.html"), templateData)
     let lostAdvantage = ""
 
     foundry.applications.api.DialogV2.wait({
@@ -298,29 +306,210 @@ export default class Advantage {
   }
 
   /**
-   * When Group Advantage is active, shift one group pool Advantage toward the side with more
-   * combatants by token disposition (Hostile vs Friendly; Neutral excluded). Uses WFRP4e
-   * `enemies` / `players` pools, clamped to 0 and the world's configured Advantage maximum.
+   * Actor used for Drilled checks: combatant link first, then token document (covers missing `combatant.actor`).
+   * @param {Combatant} combatant
+   * @returns {Actor|null}
+   */
+  static numericalSuperiorityResolvedActor (combatant) {
+    return combatant.actor ?? combatant.token?.actor ?? null
+  }
+
+  /**
+   * Normalize a talent display name for Drilled comparisons (trim + lower case).
+   * @param {string|undefined|null} s
+   * @returns {string}
+   */
+  static _normalizeDrilledName (s) {
+    return (s ?? "").trim().toLowerCase()
+  }
+
+  /**
+   * Whether a WFRP4e talent item counts as **Drilled** for numerical superiority.
+   * Matches localized `NAME.Drilled` and case-insensitive **Drilled** (English compendium name),
+   * so sheets that keep English names still match non-English UI locales.
+   * @param {Item} item
+   * @returns {boolean}
+   */
+  static _talentItemIsDrilled (item) {
+    if (item?.type !== "talent") return false
+    const nameNorm = Advantage._normalizeDrilledName(item.name)
+    if (!nameNorm) return false
+    const localizedNorm = Advantage._normalizeDrilledName(game.i18n.localize("NAME.Drilled"))
+    return nameNorm === localizedNorm || nameNorm === "drilled"
+  }
+
+  /**
+   * Scan actor items for Drilled advances (no logging). Caller must pass an actor with `.items` if iterating.
+   * @param {Actor} actor   Actor with `items` collection.
+   * @returns {{ total: number, matches: Array<{ name: string, advances: number }>, drilledName: string }}
+   */
+  static _drilledAdvancesScan (actor) {
+    const drilledName = game.i18n.localize("NAME.Drilled")
+    const matches = []
+    let total = 0
+    for (const item of actor.items) {
+      if (Advantage._talentItemIsDrilled(item)) {
+        const adv = Number(item.system?.advances?.value) || 0
+        matches.push({ name: item.name, advances: adv })
+        total += adv
+      }
+    }
+    return { total, matches, drilledName }
+  }
+
+  /**
+   * Total advances in the Drilled talent for an actor (all talent items with that name).
+   * Diagnostic logging (package debug) runs only inside this routine.
+   * @param {Actor|null|undefined} actor
+   * @param {{ combatantId?: string, tokenId?: string }|undefined} [logContext]  Passed from numerical superiority only.
+   * @returns {number}
+   */
+  static totalDrilledAdvances (actor, logContext) {
+    if (!actor) {
+      GMToolkit.log(false, "Advantage.totalDrilledAdvances", {
+        logContext,
+        reason: "missing actor",
+        total: 0
+      })
+      return 0
+    }
+    if (!actor.items) {
+      GMToolkit.log(false, "Advantage.totalDrilledAdvances", {
+        logContext,
+        actorId: actor.id,
+        actorName: actor.name,
+        reason: "no items collection",
+        total: 0
+      })
+      return 0
+    }
+    const { total, matches, drilledName } = Advantage._drilledAdvancesScan(actor)
+    GMToolkit.log(false, "Advantage.totalDrilledAdvances", {
+      logContext,
+      actorId: actor.id,
+      actorName: actor.name,
+      drilledName,
+      matchCount: matches.length,
+      ...(matches.length ? { matches } : {}),
+      total
+    })
+    return total
+  }
+
+  /**
+   * Weight for numerical superiority: 2 if the actor has at least one Drilled advance, else 1.
+   * @param {Actor|null|undefined} actor
+   * @param {{ combatantId?: string, tokenId?: string }|undefined} [logContext]  Passed through to `totalDrilledAdvances`.
+   * @returns {1|2}
+   */
+  static numericalSuperiorityWeight (actor, logContext) {
+    return Advantage.totalDrilledAdvances(actor, logContext) >= 1 ? 2 : 1
+  }
+
+  static numericalSuperiorityActorEligibleForDrilled (actor) {
+    if (!actor?.hasCondition) return true
+    return !(actor.hasCondition("dead") || actor.hasCondition("unconscious"))
+  }
+
+  static numericalSuperiorityActorEligibleForTally (actor) {
+    return Advantage.numericalSuperiorityActorEligibleForDrilled(actor)
+  }
+
+  /**
+   * When Group Advantage is active, shift one group pool Advantage toward the side with greater
+   * weighted presence: **Friendly** tokens add to the players-side total; **Hostile** and **Neutral**
+   * tokens add to the enemies-side total. Each combatant with a token contributes **1**, or **2** if
+   * the encounter includes at least one tallied combatant with Drilled (≥1 advance) and this
+   * combatant’s resolved actor also has Drilled (≥1 advance). Uses WFRP4e `enemies` /
+   * `players` pools, clamped to 0 and the world's configured Advantage maximum.
    * @param {Combat} combat   Active encounter (caller ensures combatants exist).
    */
   static async applyGroupNumericalSuperiority (combat) {
     const updateGroupAdvantage = game.wfrp4e?.utility?.updateGroupAdvantage
     if (typeof updateGroupAdvantage !== "function") return
 
-    let hostile = 0
-    let friendly = 0
+    const tallied = []
+    let friendlyTallyCount = 0
+    let enemyTallyCount = 0
+
     for (const c of combat.combatants) {
       const token = c.token
       if (!token) continue
       const d = token.disposition
-      if (d === CONST.TOKEN_DISPOSITIONS.HOSTILE) hostile++
-      else if (d === CONST.TOKEN_DISPOSITIONS.FRIENDLY) friendly++
+      if (d !== CONST.TOKEN_DISPOSITIONS.FRIENDLY
+        && d !== CONST.TOKEN_DISPOSITIONS.HOSTILE
+        && d !== CONST.TOKEN_DISPOSITIONS.NEUTRAL) continue
+
+      const resolved = Advantage.numericalSuperiorityResolvedActor(c)
+      const ctx = { combatantId: c.id, tokenId: token.id }
+
+      if (resolved && !Advantage.numericalSuperiorityActorEligibleForTally(resolved)) continue
+
+      tallied.push({ c, token, d, resolved, ctx })
+
+      if (d === CONST.TOKEN_DISPOSITIONS.FRIENDLY) friendlyTallyCount++
+      else enemyTallyCount++
     }
 
-    GMToolkit.log(false, `applyGroupNumericalSuperiority: hostile=${hostile}, friendly=${friendly}`)
+    const drilledEngagementAllowed = friendlyTallyCount !== 1
+    const drilledQuorumPlayers = drilledEngagementAllowed && friendlyTallyCount >= 2
+    const drilledQuorumEnemies = drilledEngagementAllowed && enemyTallyCount >= 2
 
-    if (hostile === friendly) return
-    if (hostile + friendly === 0) return
+    let encounterHasDrilled = false
+    let firstDrilledActorLabel = ""
+    for (const t of tallied) {
+      if (!t.resolved) continue
+      if (!Advantage.numericalSuperiorityActorEligibleForDrilled(t.resolved)) continue
+
+      const sideQuorum = (t.d === CONST.TOKEN_DISPOSITIONS.FRIENDLY)
+        ? drilledQuorumPlayers
+        : drilledQuorumEnemies
+      if (!sideQuorum) continue
+
+      if (Advantage.totalDrilledAdvances(t.resolved, t.ctx) >= 1) {
+        encounterHasDrilled = true
+        firstDrilledActorLabel = t.resolved.name ?? t.resolved.id
+        break
+      }
+    }
+
+    let playersSide = 0
+    let enemiesSide = 0
+    for (const t of tallied) {
+      let w = 1
+      if (encounterHasDrilled && t.resolved && Advantage.numericalSuperiorityActorEligibleForDrilled(t.resolved)) {
+        const sideQuorum = (t.d === CONST.TOKEN_DISPOSITIONS.FRIENDLY)
+          ? drilledQuorumPlayers
+          : drilledQuorumEnemies
+        if (sideQuorum) {
+          w = Advantage.numericalSuperiorityWeight(t.resolved, t.ctx)
+        }
+      }
+      if (t.d === CONST.TOKEN_DISPOSITIONS.FRIENDLY) playersSide += w
+      else enemiesSide += w
+    }
+
+    GMToolkit.log(false, "applyGroupNumericalSuperiority", {
+      combatId: combat.id,
+      round: combat.round,
+      friendlyTallyCount,
+      enemyTallyCount,
+      drilledEngagementAllowed,
+      drilledQuorumPlayers,
+      drilledQuorumEnemies,
+      encounterHasDrilled,
+      ...(encounterHasDrilled ? { exampleDrilledActor: firstDrilledActorLabel } : {}),
+      playersSide,
+      enemiesSide
+    })
+
+    if (playersSide + enemiesSide === 0) {
+      return
+    }
+
+    if (playersSide === enemiesSide) {
+      return
+    }
 
     const current = foundry.utils.duplicate(game.settings.get("wfrp4e", "groupAdvantageValues"))
     let players = Number(current.players) || 0
@@ -328,7 +517,9 @@ export default class Advantage {
     const rawMax = game.settings.get("wfrp4e", "advantagemax")
     const maxAdv = Number.isNumeric(rawMax) ? Number(rawMax) : Infinity
 
-    if (hostile > friendly) {
+    const favorEnemies = enemiesSide > playersSide
+
+    if (favorEnemies) {
       enemies = Math.min(enemies + 1, maxAdv)
       players = Math.max(players - 1, 0)
     } else {
@@ -336,10 +527,11 @@ export default class Advantage {
       enemies = Math.max(enemies - 1, 0)
     }
 
-    if (players === Number(current.players) && enemies === Number(current.enemies)) return
+    if (players === Number(current.players) && enemies === Number(current.enemies)) {
+      return
+    }
 
     await game.wfrp4e.utility.updateGroupAdvantage({ players, enemies })
-    GMToolkit.log(true, `applyGroupNumericalSuperiority: players=${players}, enemies=${enemies}`)
   }
 
 } // End Class
@@ -577,10 +769,39 @@ Hooks.on("deleteCombatant", function (combatant) {
  * `combatRound` runs on the initiating client before the Combat document is updated.
  */
 Hooks.on("combatRound", async function (combat, updateData, updateOptions) {
-  if (!game.user.isUniqueGM || !combat.combatants.size) return
-  if (!Number.isFinite(updateData?.round)) return
-  if (!(updateData.round > combat.round)) return
-  if (!combat.started) return
+  const numericalSettingsOn = game.settings.get("wfrp4e", "useGroupAdvantage")
+    && game.settings.get(GMToolkit.MODULE_ID, "automateGroupAdvantageNumericalSuperiority")
+
+  const logNumericalSkip = (reason, force = false) => {
+    if (!numericalSettingsOn) return
+    GMToolkit.log(force, "combatRound: numerical superiority skipped", {
+      reason,
+      combatId: combat.id,
+      combatRound: combat.round,
+      updateRound: updateData?.round
+    })
+  }
+
+  if (!game.user.isUniqueGM) {
+    logNumericalSkip("not_unique_gm", false)
+    return
+  }
+  if (!combat.combatants.size) {
+    logNumericalSkip("no_combatants")
+    return
+  }
+  if (!Number.isFinite(updateData?.round)) {
+    logNumericalSkip("invalid_update_round")
+    return
+  }
+  if (!(updateData.round > combat.round)) {
+    logNumericalSkip("round_not_advancing")
+    return
+  }
+  if (!combat.started) {
+    logNumericalSkip("combat_not_started")
+    return
+  }
 
   if (game.settings.get(GMToolkit.MODULE_ID, "promptMomentumLoss")
     && !game.settings.get("wfrp4e", "useGroupAdvantage")) {
@@ -588,11 +809,11 @@ Hooks.on("combatRound", async function (combat, updateData, updateOptions) {
     Advantage.loseMomentum(combat)
   }
 
-  if (game.settings.get("wfrp4e", "useGroupAdvantage")
-    && game.settings.get(GMToolkit.MODULE_ID, "automateGroupAdvantageNumericalSuperiority")
-    && combat.round >= 1) {
+  if (numericalSettingsOn && combat.round >= 1) {
     GMToolkit.log(false, "combatRound: Group Advantage numerical superiority")
     await Advantage.applyGroupNumericalSuperiority(combat)
+  } else if (numericalSettingsOn) {
+    logNumericalSkip("round_below_minimum")
   }
 })
 
@@ -605,15 +826,18 @@ Hooks.on("combatTurnChange", async function (combat, prior, current) {
   if (!combat.round) return
   if (prior.round === current.round) return
 
-  GMToolkit.log(true, "combatTurnChange (round): unsetting Advantage flags")
-  const advFlagged = combat.combatants.filter(c => c.getFlag("wfrp4e-gm-toolkit", "advantage"))
+  GMToolkit.log(false, "combatTurnChange (round): post-update bookkeeping — unsetting Advantage flags (not numerical superiority / Drilled)")
+  const advFlagged = combat.combatants.filter(c => GMToolkit.getFlagCompat(c, "advantage") !== undefined)
   if (advFlagged.length) await Advantage.unsetFlags(advFlagged)
 
   GMToolkit.log(false, "combatTurnChange: Setting startOfRound flag")
   if (combat.turns && combat.isActive && !game.settings.get("wfrp4e", "useGroupAdvantage")) {
     combat.combatants.forEach(async c => {
-      await c.setFlag("wfrp4e-gm-toolkit", "sorAdvantage", c.token.actor.system.status?.advantage?.value ?? 0)
-      GMToolkit.log(false, `${c.name}:  ${c.getFlag("wfrp4e-gm-toolkit", "sorAdvantage")}`)
+      await c.setFlag(GMToolkit.MODULE_ID, "sorAdvantage", c.token.actor.system.status?.advantage?.value ?? 0)
+      for (const legacyId of GMToolkit.LEGACY_MODULE_IDS) {
+        await c.unsetFlag(legacyId, "sorAdvantage")
+      }
+      GMToolkit.log(false, `${c.name}:  ${c.getFlag(GMToolkit.MODULE_ID, "sorAdvantage")}`)
     })
   }
 })
