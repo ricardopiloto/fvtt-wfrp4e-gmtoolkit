@@ -46,4 +46,4 @@ The module ships with UI strings for **English**, **Português (Brasil)**, **Fre
 - [Changelog](CHANGELOG.md)
 - [Releases](https://github.com/ricardopiloto/fvtt-wfrp4e-gmtoolkit/releases)
 - [Issues](https://github.com/ricardopiloto/fvtt-wfrp4e-gmtoolkit/issues)
-- [Upstream repository](https://github.com/Jagusti/fvtt-wfrp4e-gmtoolkit) and [upstream wiki](https://github.com/Jagusti/fvtt-wfrp4e-gmtoolkit/wiki)
+- [Upstream repository](https://github.com/Jagusti/fvtt-wfrp4e-gmtoolkit) and [upstream wiki](https://github.com/Jagusti/fvtt-wfrp4e-gmtoolkit/wiki) 
