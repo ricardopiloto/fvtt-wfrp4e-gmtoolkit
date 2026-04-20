@@ -306,8 +306,8 @@ async function applyTokenChanges (updates) {
           || token.actor.has(game.i18n.localize("NAME.NightVision"), "talent")
         if (
           game.scenes.viewed.environment.darknessLevel < 1
-          | lightDim > 0
-          | game.scenes.viewed.environment.globalLight.enabled
+          || lightDim > 0
+          || game.scenes.viewed.environment.globalLight.enabled
         ) {
           if (actorNightVision === undefined) {
             game.gmtoolkit.module.getSettingCompat("overrideNightVision")

@@ -7,7 +7,7 @@ export default class GMToolkit {
 
   static MODULE_NAME = "GM Toolkit"
 
-  static MODULE_NAME_FULL = "GM Toolkit (WFRP4e) -Jiban"
+  static MODULE_NAME_FULL = "GM Toolkit (WFRP4e) - Jiban"
 
   static modulePath (relativePath) {
     const rel = relativePath?.startsWith("/") ? relativePath.slice(1) : relativePath

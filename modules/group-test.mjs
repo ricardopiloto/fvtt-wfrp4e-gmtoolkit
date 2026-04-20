@@ -36,7 +36,7 @@ export async function getGroupMembers (groupType) {
     playerGroup: game.gmtoolkit.utility.getGroup(groupType).map(g => g.uuid),
     selected: game.gmtoolkit.utility.getGroup("company", { interaction: "selected", present: true }).map(g => g.uuid),
     npcTokens: game.gmtoolkit.utility.getGroup("npcTokens").map(g => g.document.uuid),
-    controlled: canvas.tokens.placeables.filter(t => t.controlled & t.actor.type !== "vehicle").map(g => g.document.uuid)
+    controlled: canvas.tokens.placeables.filter(t => t.controlled && t.actor?.type !== "vehicle").map(g => g.document.uuid)
   }
   return members
 }

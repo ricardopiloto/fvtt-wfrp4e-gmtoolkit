@@ -191,16 +191,16 @@ export default class Advantage {
    * @param {Array} advantaged   :   Array of Combatant
    * @param {boolean} startOfRound  :   Unset sorAdvantage flag at end of round
    **/
-  static unsetFlags (advantaged, startOfRound = false) {
-    advantaged.filter(c => c.unsetFlag(GMToolkit.MODULE_ID, "advantage"))
-    for (const legacyId of GMToolkit.LEGACY_MODULE_IDS) {
-      advantaged.filter(c => c.unsetFlag(legacyId, "advantage"))
-    }
+  static async unsetFlags (advantaged, startOfRound = false) {
+    if (!advantaged?.length) return
+    const scopes = [GMToolkit.MODULE_ID, ...GMToolkit.LEGACY_MODULE_IDS]
+    await Promise.all(scopes.flatMap(scope =>
+      advantaged.map(c => c.unsetFlag(scope, "advantage"))
+    ))
     if (startOfRound) {
-      advantaged.filter(c => c.unsetFlag(GMToolkit.MODULE_ID, "sorAdvantage"))
-      for (const legacyId of GMToolkit.LEGACY_MODULE_IDS) {
-        advantaged.filter(c => c.unsetFlag(legacyId, "sorAdvantage"))
-      }
+      await Promise.all(scopes.flatMap(scope =>
+        advantaged.map(c => c.unsetFlag(scope, "sorAdvantage"))
+      ))
     }
     GMToolkit.log(false, "Advantage Flags: Unset.")
   }
@@ -744,14 +744,14 @@ Hooks.on("createActiveEffect", async function (conditionEffect) {
 })
 
 
-Hooks.on("createCombatant", function (combatant) {
+Hooks.on("createCombatant", async function (combatant) {
   // ADDING TO COMBAT: clear token Advantage only if enabled, and Group Advantage is not being used.
   // If Group Advantage is used, the system handles syncing individual advantage with the group
   if (game.user.isUniqueGM && game.settings.get(GMToolkit.MODULE_ID, "clearAdvantageCombatJoin") && !game.settings.get("wfrp4e", "useGroupAdvantage")) {
     const token = canvas.tokens.placeables
       .filter(a => a.id === combatant.tokenId)[0]
     Advantage.update(token, "clear", "createCombatant")
-    Advantage.unsetFlags([combatant])
+    await Advantage.unsetFlags([combatant])
   }
 })
 
